@@ -3,6 +3,7 @@
 Thread::Thread()
 {
     running = false;
+    terminate = false;
 }
 
 void *Thread::thread_function(void *param)
@@ -23,7 +24,7 @@ bool Thread::start()
     if (res == 0)
     {
         fprintf(stderr, "Thread started: %lu\n", (uint64_t) thread) ;
-        pthread_detach(tid);
+        pthread_detach(thread);
     }
     else
     {
@@ -40,8 +41,37 @@ void Thread::setRunning(bool b)
     running = b;
 }
 
+void Thread::setTerminate(bool b)
+{
+    ScopedLock lock(&mutex);
+    terminate = b;
+}
+
+bool Thread::doTerminate()
+{
+    ScopedLock lock(&mutex);
+    return terminate;
+}
+
 bool Thread::isRunning()
 {
     ScopedLock lock(&mutex);
     return running;
+}
+
+void Thread::stop()
+{
+    if (isRunning())
+    {
+        fprintf(stderr, "Thread stopped:%lu\n", (uint64_t) thread);
+        setTerminate(true);
+    }
+    else
+        fprintf(stderr, "Trying to stop a thread that is already stopped\n");
+}
+
+Thread::~Thread()
+{
+    if (isRunning())
+        fprintf(stderr, "Warning destroying thread while it's running\n");
 }

@@ -8,20 +8,26 @@
 
 class Thread
 {
+
     private:
         pthread_t thread;
         static void *thread_function(void *param);
         int tid;
         bool running;
+        bool terminate;
         Mutex mutex;
 
+    protected:
+        bool doTerminate();
     public:
         Thread();
         virtual void run() = 0;
-        virtual ~Thread() = 0;
+        virtual ~Thread();
         bool start();
+        void stop();
 
         void setRunning(bool b);
+        void setTerminate(bool b);
         bool isRunning();
 };
 
