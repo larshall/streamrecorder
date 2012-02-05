@@ -2,13 +2,26 @@
 #define SCOPEDLOCK_H
 
 #include <pthread.h>
+#include <stdio.h>
+
+class Mutex
+{
+    private:
+        pthread_mutex_t mutex;
+
+    public:
+        Mutex();
+        ~Mutex();
+        pthread_mutex_t *getMutex();
+};
 
 class ScopedLock
 {
     private:
-        pthread_mutex_t mutex;
+        Mutex *mutex;
     public:
-        ScopedLock();
+        ScopedLock(Mutex *m);
+        ~ScopedLock();
 };
 
 #endif
