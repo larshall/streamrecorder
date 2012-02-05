@@ -7,18 +7,19 @@
 #include "streamrecorder.h"
 #include "rtp.h"
 #include "h264.h"
+#include "thread.h"
 
 using std::string;
 using std::ofstream;
 
 #define MAX_BUFFER_SIZE 10024
 
-class Recorder
+class Recorder : public Thread
 {
     public:
         enum RecordingType
         {
-        
+        // TODO 
         };
 
     private:
@@ -39,6 +40,8 @@ class Recorder
 
     public:
         Recorder(const string &host, uint16_t port);
+        ~Recorder();
+
         void run();
 };
 

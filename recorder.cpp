@@ -14,21 +14,25 @@ Recorder::Recorder(const string &host, uint16_t port)
 
 void Recorder::run()
 {
-     fprintf(stderr, "\n---");
-
-    RtpPacket *packet = rtp.readPacket();
-    if (packet != NULL)
+    while(true)
     {
-        fprintf(stderr, "seqnum:%i\n", packet->seqnum);
-        fprintf(stderr, "type:%i\n", packet->type);
-        memcpy(buffer + bufferLen, packet->payload, packet->payloadLen);
-        bufferLen += packet->payloadLen;
+        if (doTerminate())
+            break;
+        fprintf(stderr, "\n---");
+        RtpPacket *packet = rtp.readPacket();
+        if (packet != NULL)
+        {
+            fprintf(stderr, "seqnum:%i\n", packet->seqnum);
+            fprintf(stderr, "type:%i\n", packet->type);
+            memcpy(buffer + bufferLen, packet->payload, packet->payloadLen);
+            bufferLen += packet->payloadLen;
 
-        if (bufferLen > 4000)
-            writeBuffer();
+            if (bufferLen > 4000)
+                writeBuffer();
 #ifdef DEBUG
-        H264::decodeNal(packet);
+            H264::decodeNal(packet);
 #endif
+        }
     }
 
 }
@@ -38,4 +42,10 @@ bool Recorder::writeBuffer()
     outputFile.write((char*)buffer, bufferLen);
     bufferLen = 0;
     return true;
+}
+
+Recorder::~Recorder()
+{
+    outputFile.close();
+    delete [] buffer;
 }
