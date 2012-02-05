@@ -11,9 +11,14 @@ void saveFile()
 int main()
 {
     Recorder recorder("239.255.0.4", 1234);
+    recorder.start();
     while(true)
     {
-        recorder.run();
+        sleep(5);
+        recorder.stop();
+        sleep(1);
+        break;
+//        recorder.run();
     }
 
     /*
