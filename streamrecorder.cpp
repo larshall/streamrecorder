@@ -3,13 +3,15 @@
 #include "streamrecorder.h"
 #include "recorder.h"
 
-void saveFile()
-{
-
-}
-
 int main()
 {
+    HttpServer server(8182);
+    server.start();
+    while(true)
+    {
+        sleep(1);
+    }
+/*
     Recorder recorder("239.255.0.4", 1234);
     recorder.start();
     while(true)
@@ -18,25 +20,11 @@ int main()
         recorder.stop();
         sleep(1);
         break;
-//        recorder.run();
     }
+*/
+}
 
-    /*
-    Rtp rtp;
-    H264 h264;
-
-    rtp.open("239.255.0.4");
-    while(true)
-    {
-        RtpPacket *packet = rtp.readPacket();
-        if (packet != NULL)
-        {
-            printf("\n---");
-
-            printf("\nseqnum:%i", packet->seqnum);
-            printf("\ntype:%i", packet->type);
-            h264.parse(packet);
-        }
-    }
-    */
+StreamRecorder::StreamRecorder()
+{
+    numRecordings = 0;
 }
