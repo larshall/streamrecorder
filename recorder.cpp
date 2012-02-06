@@ -9,7 +9,7 @@ Recorder::Recorder(const string &host, uint16_t port)
     buffer = new uint8_t[MAX_BUFFER_SIZE];
     bufferLen = 0;
     outputFile.open("./blah.x264");
-    rtp.connect("239.255.0.4", 1234);
+    rtp.connect(host.c_str(), port);
 }
 
 void Recorder::run()
@@ -27,14 +27,13 @@ void Recorder::run()
             memcpy(buffer + bufferLen, packet->payload, packet->payloadLen);
             bufferLen += packet->payloadLen;
 
-            if (bufferLen > 4000)
+            if (bufferLen > MAX_BUFFER_SIZE)
                 writeBuffer();
 #ifdef DEBUG
             H264::decodeNal(packet);
 #endif
         }
     }
-
 }
 
 bool Recorder::writeBuffer()

@@ -12,21 +12,22 @@
 using std::string;
 using std::ofstream;
 
-#define MAX_BUFFER_SIZE 10024
+#define MAX_BUFFER_SIZE 4024
 
 class Recorder : public Thread
 {
     public:
+        // TODO
         enum RecordingType
         {
-        // TODO 
+            REOCURRENT,
+            SINGLE
         };
 
     private:
         Rtp rtp;
         H264 h264;
         ofstream outputFile;
-
 
         bool recording;
         time_t startTime;
@@ -41,7 +42,6 @@ class Recorder : public Thread
     public:
         Recorder(const string &host, uint16_t port);
         ~Recorder();
-
         void run();
 };
 
