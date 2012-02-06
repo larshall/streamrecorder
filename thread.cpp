@@ -1,5 +1,36 @@
 #include "thread.h"
 
+// Mutex
+Mutex::Mutex()
+{
+    pthread_mutex_init(&mutex, NULL);
+}
+
+Mutex::~Mutex()
+{
+    pthread_mutex_destroy(&mutex);
+}
+
+pthread_mutex_t *Mutex::getMutex()
+{
+    return &mutex;
+}
+
+// ScopedLock
+ScopedLock::ScopedLock(Mutex *m) : mutex(m)
+{
+    int status = pthread_mutex_lock(mutex->getMutex());
+
+    if (status != 0)
+        fprintf(stderr, "exiting on mutex error status:%i", status);
+}
+
+ScopedLock::~ScopedLock()
+{
+    pthread_mutex_unlock(mutex->getMutex());
+}
+
+// Thread
 Thread::Thread()
 {
     running = false;
@@ -68,6 +99,26 @@ void Thread::stop()
     }
     else
         fprintf(stderr, "Trying to stop a thread that is already stopped\n");
+}
+
+void Thread::waitForThread()
+{
+    int err = pthread_join(thread,NULL);
+    if(err != 0)
+    {
+        switch(err)
+        {
+            case ESRCH:
+                fprintf(stderr, "Not a valid thread id");
+                break;
+            case EINVAL:
+                fprintf(stderr, "Antother thread is already waiting\n");
+                break;
+            case EDEADLK:
+                fprintf(stderr, "Thread is waiting for itself\n");
+                break;
+        }
+    }
 }
 
 Thread::~Thread()
