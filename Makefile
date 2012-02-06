@@ -6,7 +6,7 @@ CXXFLAGS =-Wall -g
 INCLUDES = streamrecorder.h rtp.h h264.h recorder.h httpserver.h \
 		   thread.h
 
-SOURCES = streamrecorder.cpp rtp.cpp h264.cpp recorder.cpp \
+SOURCES = streamrecorder.cpp rtp.cpp h264.cpp recorder.cpp httpserver.cpp \
 		  thread.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
