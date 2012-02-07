@@ -5,7 +5,7 @@
 
 int main()
 {
-    HttpServer server(8182);
+    HttpServer server(8182, "./data");
     server.start();
     while(true)
     {
