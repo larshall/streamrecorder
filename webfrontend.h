@@ -2,6 +2,7 @@
 #define WEBFRONTEND_H
 
 #include <string>
+#include "httpserver.h"
 
 using std::string;
 
@@ -9,7 +10,9 @@ class WebFrontend
 {
     public:
         WebFrontend();
-        bool handleRequest(const string &req);
+        // returns true if page is found
+        bool handleRequest(string &html,
+            HttpServer::RequestType type, const string &req);
 };
 
 #endif
