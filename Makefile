@@ -4,10 +4,10 @@ CTAGS=ctags --c++-kinds=+pl --fields=+iaS --extra=+q .
 CXXFLAGS =-Wall -g
 
 INCLUDES = streamrecorder.h rtp.h h264.h recorder.h httpserver.h \
-		   thread.h
+		   thread.h webfrontend.h
 
 SOURCES = streamrecorder.cpp rtp.cpp h264.cpp recorder.cpp httpserver.cpp \
-		  thread.cpp
+		  thread.cpp webfrontend.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 EXECUTABLE = streamrecorder 
