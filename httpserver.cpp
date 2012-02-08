@@ -3,6 +3,11 @@
 /*
  * A simple blocking httpserver
  * Uhh keep it safe behind a firewall or something
+ *
+ * TODO:
+ * Add more status codes
+ * Add charset
+ * Add content type
  */
 HttpServer::HttpServer(uint16_t port, const string &serverPath)
 {
@@ -59,20 +64,36 @@ void HttpServer::run()
             {
                 string path = "";
                 HttpServer::RequestType type = parseRequest(buffer, path);
-                string html = "";
 
-                // FIXME: not pretty. use bytes no matter what
-                if (!frontend->handleRequest(html, type, path))
+                uint8_t buffer[HTTP_MAX_FILE_SIZE];
+                memset(buffer, 0, HTTP_MAX_FILE_SIZE);
+
+                // try to see there is a file in serverpath to send
+                int size = 0;
+                if ((size = frontend->handleRequest(
+                    buffer, type, path)) == -1)
                 {
-                    // try to see there is a file in serverpath to send
-                    uint8_t buffer[HTTP_MAX_FILE_SIZE];
-                    memset(buffer, 0, HTTP_MAX_FILE_SIZE);
-                    int size = loadFile(buffer, path);
-                    send(newsockfd, buffer, size, 0);
+                    size = loadFile(buffer, path);
+                }
+                
+                char tmp[HTTP_MAX_FILE_SIZE];
+                memset(tmp, 0, HTTP_MAX_FILE_SIZE);
+                string header = ""; 
 
+                if (size > -1)
+                {
+                    header  = "HTTP/1.0 0 OK\r\n\r\n";
+                    memcpy(tmp, header.c_str(), header.length());
+                    memcpy(tmp + header.length(), buffer, size);
                 }
                 else
-                    send(newsockfd, html.c_str(), html.length(), 0);
+                {
+                    header  = "HTTP/1.0 404 Not found\r\n\r\n\0";
+                    memcpy(tmp, header.c_str(), header.length());
+                }
+
+                send(newsockfd, tmp, size + header.length(), 0);
+
                 close(newsockfd);
             }
         }
