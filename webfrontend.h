@@ -10,8 +10,8 @@ class WebFrontend
 {
     public:
         WebFrontend();
-        // returns true if page is found
-        bool handleRequest(string &html,
+        // returns the size (>0) if a page is found
+        int handleRequest(string &contentType, uint8_t *bytes,
             HttpServer::RequestType type, const string &req);
 };
 

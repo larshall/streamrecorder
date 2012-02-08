@@ -3,27 +3,35 @@
 WebFrontend::WebFrontend()
 {}
 
-bool WebFrontend::handleRequest(string &html,
+int WebFrontend::handleRequest(string &contentType, uint8_t *bytes,
     HttpServer::RequestType type, const string &req)
 {
-    bool ret = false;
+    int ret = -1;
+    bool found = false;
+    string html = "";
 
     if (req == "/")
     {
-        html = "HTTP/1.0 0 OK\r\n\r\n";
-        html += "<html><body>streamrecorder</body></html>\r\n";
-        ret = true;
+        html += "<html><body>streamrecorder</body></html>";
+        found = true;
        
     }
     if (req == "/test")
     {
-        html = "HTTP/1.0 0 OK\r\n\r\n";
-        html += "<html><body><b>TEST</b><img src=\"./logo.png\" /></body></html>\r\n";
-        ret = true;
+        html += "<html><body><b>TEST</b><img src=\"./logo.png\" /></body></html>";
+        found = true;
     }
-    else if (req == "/getchannels")
+    else if (req == "/get-channels")
     {
-        
+        contentType = "application/json";
+        html += "{ \"id\" : \"DR1\" , \"type\" : \"FILM\" }";
+        found = true;
+    }
+
+    if (found)
+    {
+        ret = html.length();
+        memcpy(bytes, html.c_str(), html.length());
     }
 
     return ret;
