@@ -47,6 +47,8 @@ class HttpServer : public Thread
         string serverPath;
         // returns -1 if file not found or cannot read
         int loadFile(uint8_t *bytes, const string &filename);
+        string createHeader(int status, const string &contentType,
+            const string &request, const string &reason = "");
 
     public:
         HttpServer(uint16_t port, const string &serverPath);

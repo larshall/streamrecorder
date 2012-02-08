@@ -54,7 +54,8 @@ void HttpServer::run()
     {
         struct sockaddr_in cliAddr;
         socklen_t clientLen = sizeof(cliAddr);
-        int newsockfd = accept(sockfd, (struct sockaddr *) &cliAddr,  &clientLen);
+        int newsockfd = 
+            accept(sockfd, (struct sockaddr *) &cliAddr,  &clientLen);
         memset(buffer, 0, HTTP_MAX_BUFFER);
 
         if (newsockfd)
@@ -62,8 +63,9 @@ void HttpServer::run()
             int numbytes = read(newsockfd, buffer, HTTP_MAX_BUFFER);
             if (numbytes > 0)
             {
-                string path = "";
-                HttpServer::RequestType type = parseRequest(buffer, path);
+                string contentType = "";
+                string req = "";
+                HttpServer::RequestType type = parseRequest(buffer, req);
 
                 uint8_t buffer[HTTP_MAX_FILE_SIZE];
                 memset(buffer, 0, HTTP_MAX_FILE_SIZE);
@@ -71,28 +73,31 @@ void HttpServer::run()
                 // try to see there is a file in serverpath to send
                 int size = 0;
                 if ((size = frontend->handleRequest(
-                    buffer, type, path)) == -1)
+                    contentType, buffer, type, req)) == -1)
                 {
-                    size = loadFile(buffer, path);
+                    size = loadFile(buffer, req);
                 }
                 
                 char tmp[HTTP_MAX_FILE_SIZE];
                 memset(tmp, 0, HTTP_MAX_FILE_SIZE);
                 string header = ""; 
 
+                // Not pretty. Only 200 and 404 are implemented
                 if (size > -1)
                 {
-                    header  = "HTTP/1.0 0 OK\r\n\r\n";
+                    header = createHeader(200, contentType, req);
                     memcpy(tmp, header.c_str(), header.length());
                     memcpy(tmp + header.length(), buffer, size);
                 }
                 else
                 {
-                    header  = "HTTP/1.0 404 Not found\r\n\r\n\0";
+                    size = 0;
+                    header = createHeader(404, contentType,
+                        req, "404 Not Found");
                     memcpy(tmp, header.c_str(), header.length());
                 }
 
-                send(newsockfd, tmp, size + header.length(), 0);
+                send(newsockfd, tmp, header.length() + size, 0);
 
                 close(newsockfd);
             }
@@ -142,6 +147,46 @@ HttpServer::RequestType HttpServer::parseRequest(
 
     return ret;
 }
+string HttpServer::createHeader(int status, const string &contentType,
+    const string &request, const string &reason)
+{
+    string ret = "";
+    string version = "HTTP/1.0";
+    string type = "text/plain";
+
+    if (status == 200)
+        ret  = version + " 200 OK";
+    else if (status == 404)
+        ret  = version + " 404 Not Found";
+
+    if ((status == 200) && (contentType == ""))
+    {
+        // trying to guess the content type
+        // in a very crude way (by .extension)
+        // TODO Uhh no pretty
+        if (request.find(".png") != string::npos)
+            type = "image/png";
+        else if (request.find(".json") != string::npos)
+            type = "application/json";
+        else
+            type = "text/html";
+    }
+    else
+    {
+        if (contentType != "")
+            type = contentType;
+
+        ret += "\r\nContent-Type:" + type + "\r\n\r\n";
+    }
+
+    ret += "\r\n\r\n";
+
+    if (reason != "")
+        ret += reason;
+
+    return ret;
+}
+
 
 int HttpServer::loadFile(uint8_t *bytes, const string &filename)
 {
