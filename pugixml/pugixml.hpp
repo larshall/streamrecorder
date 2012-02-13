@@ -14,7 +14,7 @@
 #ifndef HEADER_PUGIXML_HPP
 #define HEADER_PUGIXML_HPP
 
-#include "pugiconfig.hpp"
+#define PUGIXML_NO_EXCEPTIONS
 
 #ifndef PUGIXML_NO_STL
 namespace std
