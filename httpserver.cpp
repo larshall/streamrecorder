@@ -77,6 +77,8 @@ void HttpServer::run()
                     contentType, bytes, request)) == -1)
                 {
                     // try to see there is a file in serverpath to send
+                    if (request.path == "/")
+                        request.path = "/index.html";
                     size = loadFile(bytes, request.path);
                 }
                 
@@ -117,6 +119,7 @@ void HttpServer::parseRequest(Request &request, const string &req)
     {
         if (tokens[0] == "GET")
             request.type = HTTP_GET;
+        // Note: Only get request is supported
         else if (tokens[0] == "POST")
             request.type = HTTP_POST;
         else if (tokens[0] == "PUT")
