@@ -58,7 +58,7 @@ void XmlTv::readProgramme(const string &channelId,
         pugi::xpath_node node = *it;
         string start = node.node().attribute("start").value();
         string title = node.node().child("title").child_value();
-        string description = node.node().child("description").child_value();
+        string description = node.node().child("desc").child_value();
 
         programme.start = start;
         programme.title.push_back(make_pair("da", title));
