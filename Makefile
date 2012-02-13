@@ -18,7 +18,7 @@ $(EXECUTABLE): $(INCLUDES) $(OBJECTS)
 	$(CXX) -o $@ $(OBJECTS) -lpthread 
 
 clean:
-	rm *.o tags $(EXECUTABLE); $(CTAGS)
+	rm *.o pugixml/*.o tags $(EXECUTABLE); $(CTAGS)
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
