@@ -1,0 +1,57 @@
+
+<html>
+    <head>
+        <script src="./jquery.min.js"></script>
+    </head>
+
+    <body>
+        <script>
+            $(document).ready(function(){
+                // channel and start time is needed info for getting a specific programme
+                var channelId = "";
+                var start = "";
+
+                $.getJSON("http://localhost:8182/get-channels", function(json) {
+                    var items = "<option value=''></option>";
+                    for (var i = 0; i < json.Channels.length; i++)
+                        items += '<option value="' + json.Channels[i].id + '">' + json.Channels[i].displayname + '</option>';
+                    $("#channels").html(items);
+                });
+
+                $("#channels").change(function() {
+                    channelId = $("#channels").val();
+                    $.getJSON("http://localhost:8182/get-programmes?channelid=" + channelId, function(json) {
+                        var items = "<option value=''></option>";
+                        for (var i = 0; i < json.Programmes.length; i++)
+                            items += '<option value="' + json.Programmes[i].start + '">' + json.Programmes[i].title + '</option>';
+                        $("#programmes").html(items);
+                    });
+                });
+                $("#programmes").change(function() {
+                    start = $("#programmes").val();
+                    // Hack: the httpserver doesn't support urldecode yet
+                    start = start.replace(" ", "");
+                    alert(start);
+                    $.getJSON("http://localhost:8182/get-programme?channelid=" + channelId + "&start=" + start, function(json) {
+                        /*
+                        var items = "";
+                        for (var i = 0; i < json.Programmes.length; i++)
+                            items += '<option value="' + json.Programmes[i].start + '">' + json.Programmes[i].title + '</option>';
+                            $("#programmes").html(items);
+                            */
+                    });
+                });
+           });
+        </script>
+
+        <b>streamrecorder</b>
+        <p> StreamRecorder records
+        h.264 rtp packets from a uni/multicast stream
+        </p>
+        <h2>Record Channels</h2>
+        <select id="channels"></select>
+        <h2>Programmes</h2>
+        <select id="programmes"></select>
+        <div id="programme" />
+    </body>
+</html>
