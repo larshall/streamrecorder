@@ -8,16 +8,34 @@ Recorder::Recorder(const string &host, uint16_t port)
     endTime = time(NULL);
     buffer = new uint8_t[MAX_BUFFER_SIZE];
     bufferLen = 0;
-    outputFile.open("./blah.x264");
-    rtp.connect(host.c_str(), port);
+    connected = false;
+}
+
+bool Recorder::connect()
+{
+    return rtp.connect(host.c_str(), port);
 }
 
 void Recorder::run()
 {
     while(true)
     {
+
         if (doTerminate())
             break;
+ 
+        if (!connected)
+        {
+            connected = connect();
+            outputFile.open("./blah.x264");
+            if (!connected)
+            {
+                // Only try once
+                fprintf(stderr, "Cannot connect to:%s", host.c_str());
+                break;
+            }
+        }
+
         fprintf(stderr, "\n---");
         RtpPacket *packet = rtp.readPacket();
         if (packet != NULL)
