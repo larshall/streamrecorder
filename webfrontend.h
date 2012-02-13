@@ -21,6 +21,10 @@ class WebFrontend
             Request &request);
         void getProgramme(string &contentType, string &output,
             Request &request);
+        void record(string &contentType, string &output,
+            Request &request);
+
+        string jsonEncode(const string &str);
     public:
         WebFrontend(StreamRecorder *streamRecorder);
         // returns the size (>0) if a page is found

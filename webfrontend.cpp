@@ -10,27 +10,23 @@ int WebFrontend::handleRequest(string &contentType, uint8_t *bytes,
     Request &request)
 {
     int ret = -1;
-    bool found = false;
+    bool found = true;
     string output = "";
 
     // gets all channels
     if (request.path == "/get-channels")
-    {
         getChannels(contentType, output, request);
-        found = true;
-    }
     // gets a list of programmes for a specific channel
     else if (request.path == "/get-programmes")
-    {
         getProgrammes(contentType, output, request);
-        found = true;
-    }
     // gets a specfic programme for a specific channel and time
     else if (request.path == "/get-programme")
-    {
         getProgramme(contentType, output, request);
-        found = true;
-    }
+    // records the requested programme
+    else if (request.path == "/record")
+        getProgramme(contentType, output, request);
+    else
+        found = false;
 
     if (found)
     {
@@ -55,7 +51,7 @@ void WebFrontend::getChannels(string &contentType, string &output,
         ss << "\"id\" : \"" + channels[i].id + "\" , ";
         ss << "\"displayname\" : \"" + channels[i].displayName + "\"";
         ss << " } ";
-        // TODO: create a general vector->json array function
+
         if (i != channels.size() - 1)
             ss << ",";
     }
@@ -115,24 +111,66 @@ void WebFrontend::getProgramme(string &contentType, string &output,
     // Hack: the httpserver doesn't support urldecode yet,
     // so space in iso8601 extended date is removed
     int pos = start.find("+");
-    start.insert(pos, " ");
+    if ((pos > 0) && (pos < (int)start.length()))
+        start.insert(pos, " ");
 
     Programme programme;
     stringstream ss;
     streamRecorder->getProgramme(channelId, start, programme);
-    ss << "{\"Programme\" : [";
     ss << " { ";
     ss << "\"start\" : \"" + programme.start + "\" , ";
     if ((programme.title.size() > 0) && (programme.description.size() > 0))
     {
-        ss << "\"title\" : \"" + programme.title[0].second + "\"";
-        ss << "\"description\" : \"" + programme.description[0].second + "\"";
+        ss << "\"title\" : \"" + programme.title[0].second + "\", ";
+        ss << "\"description\" : \"" +
+            jsonEncode(programme.description[0].second) + "\"";
     }
     ss << " } ";
-    // TODO: create a general vector->json array function
-    ss << "]}";
 
     output = ss.str();
+}
+
+void WebFrontend::record(string &contentType, string &output,
+    Request &request)
+{
 
 }
 
+string WebFrontend::jsonEncode(const string &str)
+{
+    stringstream ss;
+    for (unsigned int i = 0; i < str.length(); i++)
+    {
+        switch(str[i])
+        {
+            case '"':
+                ss << "\\\"";
+                break;
+            case '\\':
+                ss << "\\\\";
+                break;
+            case '/':
+                break;
+            case '\n':
+                ss << " ";
+                break;
+            case '\r':
+                ss << " ";
+                break;
+            case '\f':
+                ss << " ";
+                break;
+            case '\b':
+                ss << " ";
+                break;
+            case '\t':
+                ss << " ";
+                break;
+            default:
+                ss << str[i];
+                break;
+        }
+    } 
+
+    return ss.str();
+}
