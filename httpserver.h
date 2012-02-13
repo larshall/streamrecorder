@@ -35,6 +35,7 @@ class HttpServer : public Thread
     public:
         typedef list<pair<string, string> > RequestParams;
 
+        // NOTE: only GET requests are supported for now
         enum RequestType
         {
             HTTP_GET = 0,
