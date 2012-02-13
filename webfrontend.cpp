@@ -13,18 +13,14 @@ int WebFrontend::handleRequest(string &contentType, uint8_t *bytes,
     bool found = true;
     string output = "";
 
-    // gets all channels
     if (request.path == "/get-channels")
         getChannels(contentType, output, request);
-    // gets a list of programmes for a specific channel
     else if (request.path == "/get-programmes")
         getProgrammes(contentType, output, request);
-    // gets a specfic programme for a specific channel and time
     else if (request.path == "/get-programme")
         getProgramme(contentType, output, request);
-    // records the requested programme
     else if (request.path == "/record")
-        getProgramme(contentType, output, request);
+        record(contentType, output, request);
     else
         found = false;
 
@@ -108,8 +104,9 @@ void WebFrontend::getProgramme(string &contentType, string &output,
             start = it->second;
     }
 
-    // Hack: the httpserver doesn't support urldecode yet,
-    // so space in iso8601 extended date is removed
+    // TODO: Hack: the httpserver doesn't support urldecode yet,
+    // so the single space in iso8601 extended date is removed
+    // and later added when query the xmltv file
     int pos = start.find("+");
     if ((pos > 0) && (pos < (int)start.length()))
         start.insert(pos, " ");
@@ -133,7 +130,27 @@ void WebFrontend::getProgramme(string &contentType, string &output,
 void WebFrontend::record(string &contentType, string &output,
     Request &request)
 {
+    string channelId = "";
+    string start = "";
+    HttpServer::RequestParams::const_iterator it;
+    contentType = "application/json";
 
+    for (it = request.params.begin(); it != request.params.end(); it ++)
+    {
+        if (it->first == "channelid")
+            channelId = it->second;
+        if (it->first == "start")
+            start = it->second;
+    }
+
+    // TODO: Hack: the httpserver doesn't support urldecode yet,
+    // so the single space in iso8601 extended date is removed
+    // and later added when query the xmltv file
+    int pos = start.find("+");
+    if ((pos > 0) && (pos < (int)start.length()))
+        start.insert(pos, " ");
+
+    streamRecorder->record(channelId, start);
 }
 
 string WebFrontend::jsonEncode(const string &str)
