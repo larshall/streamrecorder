@@ -11,6 +11,8 @@
 #include <string>
 #include <fstream>
 #include <sys/stat.h>
+#include <list>
+#include <vector>
 #include "thread.h"
 
 #define HTTP_MAX_PENDING 10
@@ -21,13 +23,18 @@
 using std::string;
 using std::ifstream;
 using std::ios;
+using std::pair;
+using std::list;
+using std::vector;
 
 class WebFrontend;
-
+struct Request;
 
 class HttpServer : public Thread
 {
     public:
+        typedef list<pair<string, string> > RequestParams;
+
         enum RequestType
         {
             HTTP_GET = 0,
@@ -39,21 +46,38 @@ class HttpServer : public Thread
 
     private:
         WebFrontend *frontend;
+        string serverPath;
         bool started;
         int sockfd;
         short port;
+
         void startServer();
-        RequestType parseRequest(const string &req, string &path);
-        string serverPath;
-        // returns -1 if file not found or cannot read
+        void parseRequest(Request &request, const string &req);
+
+        /// Retuns start of param list if any otherwise -1
+        int parseReqParams(RequestParams &params, const string &req);
+        /// returns -1 if file not found or cannot read
         int loadFile(uint8_t *bytes, const string &filename);
         string createHeader(int status, const string &contentType,
-            const string &request, const string &reason = "");
+            const Request &request, const string &reason = "");
 
+        void splitString(vector<string> &tokens,
+            const string &str, const string &sep);
     public:
-        HttpServer(uint16_t port, const string &serverPath);
+        HttpServer(uint16_t port, const string &serverPath,
+            WebFrontend *frontend);
         ~HttpServer();
         void run();
 };
+
+struct Request
+{
+    string requestStr;
+    string path;
+    HttpServer::RequestType type;
+    HttpServer::RequestParams params;
+};
+
+
 
 #endif

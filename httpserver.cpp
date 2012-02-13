@@ -9,12 +9,13 @@
  * Add charset
  * Add content type
  */
-HttpServer::HttpServer(uint16_t port, const string &serverPath)
+HttpServer::HttpServer(uint16_t port, const string &serverPath,
+    WebFrontend *frontend)
 {
     this->port = port;
     started = false;
     this->serverPath = serverPath;
-    this->frontend = new WebFrontend();
+    this->frontend = frontend;
 }
 
 void HttpServer::startServer()
@@ -29,9 +30,7 @@ void HttpServer::startServer()
     
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
         (char *)&reuse, sizeof(reuse)) < 0)
-    {
         fprintf(stderr, "HttpServer: Error setting SO_REUSEADDR");
-    }
 
     name.sin_family = AF_INET;
     name.sin_port = htons (port);
@@ -64,18 +63,21 @@ void HttpServer::run()
             if (numbytes > 0)
             {
                 string contentType = "";
-                string req = "";
-                HttpServer::RequestType type = parseRequest(buffer, req);
 
-                uint8_t buffer[HTTP_MAX_FILE_SIZE];
-                memset(buffer, 0, HTTP_MAX_FILE_SIZE);
+                Request request;
+                parseRequest(request, buffer);
+                // TODO: log
+                printf("request:%s\n", request.requestStr.c_str());
 
-                // try to see there is a file in serverpath to send
+                uint8_t bytes[HTTP_MAX_FILE_SIZE];
+                memset(bytes, 0, HTTP_MAX_FILE_SIZE);
+
                 int size = 0;
                 if ((size = frontend->handleRequest(
-                    contentType, buffer, type, req)) == -1)
+                    contentType, bytes, request)) == -1)
                 {
-                    size = loadFile(buffer, req);
+                    // try to see there is a file in serverpath to send
+                    size = loadFile(bytes, request.path);
                 }
                 
                 char tmp[HTTP_MAX_FILE_SIZE];
@@ -85,15 +87,15 @@ void HttpServer::run()
                 // Not pretty. Only 200 and 404 are implemented
                 if (size > -1)
                 {
-                    header = createHeader(200, contentType, req);
+                    header = createHeader(200, contentType, request);
                     memcpy(tmp, header.c_str(), header.length());
-                    memcpy(tmp + header.length(), buffer, size);
+                    memcpy(tmp + header.length(), bytes, size);
                 }
                 else
                 {
                     size = 0;
                     header = createHeader(404, contentType,
-                        req, "404 Not Found");
+                        request, "404 Not Found");
                     memcpy(tmp, header.c_str(), header.length());
                 }
 
@@ -105,50 +107,71 @@ void HttpServer::run()
     }
 }
 
-HttpServer::RequestType HttpServer::parseRequest(
-    const string &req, string &path)
+void HttpServer::parseRequest(Request &request, const string &req)
 {
-    char tmp[HTTP_MAX_TOKEN];
-    string tokens[2];
-    int numTokens = 0;
-    RequestType ret = HTTP_UNKNOWN;
+    vector<string> tokens;
+    splitString(tokens, req, " ");
+    request.requestStr = req;
 
-    strncpy(tmp, req.c_str(), HTTP_MAX_TOKEN);
-    char *token = strtok (tmp, " ");
-    path = "";
-
-    while (token != NULL)
-    {
-        tokens[numTokens ++] = token;
-        // Only request type and path are relevant
-        if (numTokens >= 2)
-            break;
-
-        token = strtok (NULL, " ");
-    }
-
-    if (numTokens == 2)
+    if (tokens.size() >= 2)
     {
         if (tokens[0] == "GET")
-            ret = HTTP_GET;
+            request.type = HTTP_GET;
         else if (tokens[0] == "POST")
-            ret = HTTP_POST;
+            request.type = HTTP_POST;
         else if (tokens[0] == "PUT")
-            ret = HTTP_PUT;
+            request.type = HTTP_PUT;
         else if (tokens[0] == "DELETE")
-            ret = HTTP_DELETE;
+            request.type = HTTP_DELETE;
 
+        int pos = parseReqParams(request.params, tokens[1]);
 
-        fprintf(stderr, "RequestType:%s\n", tokens[0].c_str());
-        fprintf(stderr, "Path:%s\n", tokens[1].c_str());
-        path = tokens[1];
+        if (pos > -1)
+            request.path = tokens[1].substr(0, (int)pos);
+        else
+            request.path = tokens[1];
+    }
+}
 
+int HttpServer::parseReqParams(RequestParams &params, const string &req)
+{
+    int ret = -1;
+    int pos = 0;
+
+    pos = req.find('?');
+
+    if ((pos != (int)string::npos) && ((int)req.length() - 1 > pos))
+    {
+        ret = pos;
+        // skipping '?'
+        string str = req.substr(pos + 1, req.length()); 
+        vector<string> keyvals;
+        // split per '&'
+        splitString(keyvals, str, "&");
+        for (unsigned int i = 0; i < keyvals.size(); i++)
+        {
+            // splits key=val
+            vector<string> tokens;
+            splitString(tokens, keyvals[i], "=");
+            if (tokens.size() > 0)
+            {
+                string key = "";
+                string value = "";
+
+                key = tokens[0];
+                if (tokens.size() >= 2)
+                    value = tokens[1];
+
+                params.push_back(make_pair(key, value));
+            }
+        }
     }
 
     return ret;
 }
+
 string HttpServer::createHeader(int status, const string &contentType,
-    const string &request, const string &reason)
+    const Request &request, const string &reason)
 {
     string ret = "";
     string version = "HTTP/1.0";
@@ -163,10 +186,10 @@ string HttpServer::createHeader(int status, const string &contentType,
     {
         // trying to guess the content type
         // in a very crude way (by .extension)
-        // TODO Uhh no pretty
-        if (request.find(".png") != string::npos)
+        // TODO Uhh not pretty
+        if (request.path.find(".png") != string::npos)
             type = "image/png";
-        else if (request.find(".json") != string::npos)
+        else if (request.path.find(".json") != string::npos)
             type = "application/json";
         else
             type = "text/html";
@@ -207,8 +230,21 @@ int HttpServer::loadFile(uint8_t *bytes, const string &filename)
     return ret;
 }
 
+void HttpServer::splitString(vector<string> &tokens,
+    const string &str, const string &sep)
+{
+    char tmp[HTTP_MAX_TOKEN];
+    memset(tmp, 0, HTTP_MAX_TOKEN);
+    strncpy(tmp, str.c_str(), HTTP_MAX_TOKEN);
+    char *token = strtok (tmp, sep.c_str());
+
+    while (token != NULL)
+    {
+        tokens.push_back(token);
+        token = strtok (NULL, sep.c_str());
+    }
+}
 
 HttpServer::~HttpServer()
 {
-    delete frontend;
 }
