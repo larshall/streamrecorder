@@ -6,6 +6,13 @@
 
     <body>
         <script>
+            function escapeJson(valueToEscape) {
+                if (valueToEscape != null && valueToEscape != "") {
+                    return valueToEscape.replace(/\n/g, "\\n");
+                } else {
+                    return valueToEscape;
+                }
+            }
             $(document).ready(function(){
                 // channel and start time is needed info for getting a specific programme
                 var channelId = "";
@@ -19,6 +26,8 @@
                 });
 
                 $("#channels").change(function() {
+                    // reset programme div
+                    $("#programme").html("");
                     channelId = $("#channels").val();
                     $.getJSON("http://localhost:8182/get-programmes?channelid=" + channelId, function(json) {
                         var items = "<option value=''></option>";
@@ -31,14 +40,14 @@
                     start = $("#programmes").val();
                     // Hack: the httpserver doesn't support urldecode yet
                     start = start.replace(" ", "");
-                    alert(start);
-                    $.getJSON("http://localhost:8182/get-programme?channelid=" + channelId + "&start=" + start, function(json) {
-                        /*
+                    var programmeId ="channelid=" + channelId + "&start=" + start;
+                    $.getJSON("http://localhost:8182/get-programme?" + programmeId, function(json) {
+                        json.description = escapeJson(json.description);
                         var items = "";
-                        for (var i = 0; i < json.Programmes.length; i++)
-                            items += '<option value="' + json.Programmes[i].start + '">' + json.Programmes[i].title + '</option>';
-                            $("#programmes").html(items);
-                            */
+                        items += '<h2>' + json.title + '</h2>';
+                        items += '<p>' + json.description + '</p>';
+                        items += '<a href="record?' + programmeId + '">Record programme</a>';
+                        $("#programme").html(items);
                     });
                 });
            });
