@@ -9,11 +9,8 @@ Recorder::Recorder(const string &host, uint16_t port)
     buffer = new uint8_t[MAX_BUFFER_SIZE];
     bufferLen = 0;
     connected = false;
-}
-
-bool Recorder::connect()
-{
-    return rtp.connect(host.c_str(), port);
+    this->host = host;
+    this->port = port;
 }
 
 void Recorder::run()
@@ -26,43 +23,62 @@ void Recorder::run()
  
         if (!connected)
         {
-            connected = connect();
-            outputFile.open("./blah.x264");
+            connected = rtp.connect(host.c_str(), port);
+            outputFile.open(filename.c_str(), ios::trunc | ios::out);
             if (!connected)
             {
-                // Only try once
-                fprintf(stderr, "Cannot connect to:%s", host.c_str());
-                break;
+                fprintf(stderr, "Cannot connect to:%s:%i\n",
+                    host.c_str(), port);
+                // TODO: reconnect time
+                sleep(5);
+                //break;
             }
         }
 
-        fprintf(stderr, "\n---");
+        //fprintf(stderr, "\n---");
         RtpPacket *packet = rtp.readPacket();
         if (packet != NULL)
         {
-            fprintf(stderr, "seqnum:%i\n", packet->seqnum);
-            fprintf(stderr, "type:%i\n", packet->type);
+            //fprintf(stderr, "seqnum:%i\n", packet->seqnum);
+            //fprintf(stderr, "type:%i\n", packet->type);
             memcpy(buffer + bufferLen, packet->payload, packet->payloadLen);
             bufferLen += packet->payloadLen;
 
-            if (bufferLen > MAX_BUFFER_SIZE)
+            if (bufferLen > MAX_BUFFER_FRAMES)
                 writeBuffer();
 #ifdef DEBUG
             H264::decodeNal(packet);
 #endif
         }
+
+        usleep(0.1);
     }
+
+    cleanup();
 }
 
 bool Recorder::writeBuffer()
 {
     outputFile.write((char*)buffer, bufferLen);
     bufferLen = 0;
+
     return true;
+}
+
+void Recorder::cleanup()
+{
+    if (bufferLen > 0)
+        writeBuffer();
+
+    if (outputFile.is_open())
+    {
+        outputFile.flush();
+        outputFile.close();
+    }
 }
 
 Recorder::~Recorder()
 {
-    outputFile.close();
+    cleanup();
     delete [] buffer;
 }

@@ -10,13 +10,19 @@
 
 using std::string;
 using std::ofstream;
+using std::ios;
 
-#define MAX_BUFFER_SIZE 4024
+#define MAX_BUFFER_SIZE 8024
+// Number of frames to buffer before writing to disk
+// Note: This needs be smaller than buffer - the MTU size
+// (plus a little extra)
+#define MAX_BUFFER_FRAMES MAX_BUFFER_SIZE / 2
 
 class Recorder : public Thread
 {
 
     private:
+        Mutex mutex;
         Rtp rtp;
         H264 h264;
         ofstream outputFile;
@@ -36,7 +42,7 @@ class Recorder : public Thread
 
 
         bool writeBuffer();
-        bool connect();
+        void cleanup();
 
     public:
         Recorder(const string &host, uint16_t port);
@@ -46,26 +52,43 @@ class Recorder : public Thread
 
         void setStartTime(time_t startTime)
         {
+            ScopedLock lock(&mutex);
             this->startTime = startTime;
+        }
+
+        time_t getStartTime()
+        {
+            ScopedLock lock(&mutex);
+            return startTime;
         }
 
         void setEndTime(time_t endTime)
         {
+            ScopedLock lock(&mutex);
             this->endTime = endTime;
+        }
+
+        time_t getEndTime()
+        {
+            ScopedLock lock(&mutex);
+            return endTime;
         }
 
         void setTitle(const string &title)
         {
+            ScopedLock lock(&mutex);
             this->title = title;
         }
 
         void setDescription(const string &description)
         {
+            ScopedLock lock(&mutex);
             this->description = description;
         }
 
-        void setFilename(const string &description)
+        void setFilename(const string &filename)
         {
+            ScopedLock lock(&mutex);
             this->filename = filename;
         }
 };
