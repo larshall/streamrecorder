@@ -9,6 +9,8 @@
 #define DEBUG
 // Probably not soo many recordings at the same time :)
 #define MAX_RECORDERS 100
+// Reaps every REAP_INTERVAL seconds
+#define REAP_INTERVAL 30
 
 class StreamRecorder
 {
@@ -18,6 +20,8 @@ class StreamRecorder
         list<Recorder*> recorders;
         XmlTv xmltv;
         Mutex mutex;
+        /// the time of last reap
+        time_t lastReap;
         /// Reaping finished recordings
         void reapRecorders();
     public:

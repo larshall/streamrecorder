@@ -15,14 +15,14 @@ int main()
     */
     StreamRecorder streamRecorder;
     WebFrontend frontend(&streamRecorder);
-    //streamRecorder.getProgrammes("3plus");
 
     HttpServer server(8182, "./data", &frontend);
     server.start();
     while(true)
     {
         streamRecorder.process();
-        usleep(0.1);
+        // once a second is enough for recordings
+        sleep(1);
     }
 /*
     Recorder recorder("239.255.0.4", 1234);
@@ -40,11 +40,45 @@ int main()
 StreamRecorder::StreamRecorder()
 {
     xmltv.loadFile("data/tv.xml", "da");
+    lastReap = time(NULL);
 }
 
 void StreamRecorder::process()
 {
-    reapRecorders();
+    ScopedLock lock(&mutex);
+    list<Recorder*>::iterator it;
+
+    for (it = recorders.begin(); it != recorders.end(); it++)
+    {
+        if (!(*it)->isRunning())
+        {
+            fprintf(stderr, "startTime:%i, time:%i\n",
+                (int)(*it)->getStartTime(), (int)time(NULL));
+            if (((*it)->getStartTime() <= time(NULL)) &&
+                ((*it)->getEndTime() >= time(NULL)))
+            {
+                fprintf(stderr, "Starting to record\n");
+                // start recording
+                (*it)->start();
+            }
+        }
+        else
+        {
+            // check to see any recordings that have to be stopped
+            if ((*it)->getEndTime() <= time(NULL))
+            {
+                fprintf(stderr, "Stopping recording\n");
+                (*it)->stop();
+            }
+        }
+    }
+
+    if (lastReap + REAP_INTERVAL <= time(NULL))
+    {
+        fprintf(stderr, "Reaping recordings\n");
+        reapRecorders();
+        lastReap = time(NULL) + REAP_INTERVAL;
+    }
 }
 
 void StreamRecorder::getChannels(vector<Channel> &channels)
@@ -73,21 +107,24 @@ void StreamRecorder::record(const string &channelId, const string &start)
     Programme p;
     xmltv.readProgramme(channelId, start, p);
 
-    Recorder *r = new Recorder("239.255.0.1", 1234);
+    Recorder *r = new Recorder("239.255.0.4", 1234);
     r->setTitle(p.title[0].second);
     r->setDescription(p.description[0].second);
-    r->setStartTime(time(NULL));
-    r->setStartTime(time(NULL) + 60);
+    r->setStartTime(time(NULL) + 10);
+    r->setEndTime(time(NULL) + 20);
+    // TODO: allow setting the filename
+    r->setFilename(start + channelId + ".x264");
 
     recorders.push_back(r);
+    fprintf(stderr, "Adding recorder\n");
 }
 
 void StreamRecorder::reapRecorders()
 {
-    ScopedLock lock(&mutex);
     list<Recorder*>::iterator tmp[MAX_RECORDERS];
     int num = 0;
     list<Recorder*>::iterator it;
+
     for (it = recorders.begin(); it != recorders.end(); it ++)
     {
         if (!(*it)->isRunning())
@@ -99,24 +136,4 @@ void StreamRecorder::reapRecorders()
 
     for (int i = 0; i < num; i++)
         recorders.erase(tmp[i]);
-    /*
-    int tmp[MAX_RECORDERS];
-    int num = 0;
-    memset(tmp, 0, MAX_RECORDERS);
-    */
-    /*
-    for (int i = 0; i < recorders.size(); i++)
-    {
-        if (recorders[i].running() == false)
-        {
-            tmp[num++] = i;
-            delete recorders[i];
-        }
-    }
-
-    for (int i = 0; i < num; i++)
-    {
-        recorders.erase
-    }
-    */
 }
