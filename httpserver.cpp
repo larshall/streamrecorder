@@ -67,7 +67,7 @@ void HttpServer::run()
                 Request request;
                 parseRequest(request, buffer);
                 // TODO: log
-                printf("request:%s\n", request.requestStr.c_str());
+                //printf("request:%s\n", request.requestStr.c_str());
 
                 uint8_t bytes[HTTP_MAX_FILE_SIZE];
                 memset(bytes, 0, HTTP_MAX_FILE_SIZE);
