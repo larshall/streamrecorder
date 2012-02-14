@@ -54,6 +54,7 @@ bool Thread::start()
     int res = pthread_create(&thread, NULL, thread_function, this);
     if (res == 0)
     {
+        setRunning(true);
         fprintf(stderr, "Thread started: %lu\n", (uint64_t) thread) ;
         pthread_detach(thread);
     }
@@ -96,6 +97,7 @@ void Thread::stop()
     {
         fprintf(stderr, "Thread stopped:%lu\n", (uint64_t) thread);
         setTerminate(true);
+        setRunning(false);
     }
     else
         fprintf(stderr, "Trying to stop a thread that is already stopped\n");
