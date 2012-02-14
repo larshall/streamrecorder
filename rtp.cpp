@@ -3,6 +3,7 @@
 Rtp::Rtp()
 {
     connected = false;
+    fd = -1;
 }
 
 bool Rtp::connect(const string &host, uint16_t port)
@@ -10,8 +11,9 @@ bool Rtp::connect(const string &host, uint16_t port)
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if(fd < 0)
     {
-        fprintf(stderr, "Opening datagram socket error");
-        exit(1);
+        fprintf(stderr, "Error: socket\n");
+
+        return false;
     }
     else
         printf("Opening datagram socket....OK.\n");
@@ -20,8 +22,9 @@ bool Rtp::connect(const string &host, uint16_t port)
     if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
         (char *)&reuse, sizeof(reuse)) < 0)
     {
-        fprintf(stderr, "Setting SO_REUSEADDR error");
+        fprintf(stderr, "Error: SO_REUSEADDR\n");
         close(fd);
+
         return false;
     }
  
@@ -31,18 +34,19 @@ bool Rtp::connect(const string &host, uint16_t port)
     sock.sin_addr.s_addr = INADDR_ANY;
     if(bind(fd, (struct sockaddr*)&sock, sizeof(sock)))
     {
-        fprintf(stderr, "Binding error");
+        fprintf(stderr, "Error: bind\n");
         close(fd);
 
         return false;
     }
  
+    struct ip_mreq group;
     group.imr_multiaddr.s_addr = inet_addr(host.c_str());
 
     if(setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
         (char *)&group, sizeof(group)) < 0)
     {
-        fprintf(stderr, "Adding multicast group error");
+        fprintf(stderr, "Error: adding multicast group\n");
         close(fd);
 
         return false;
@@ -64,7 +68,8 @@ RtpPacket *Rtp::readPacket()
     int numbytes = 0;
     if((numbytes = read(fd, databuf, datalen)) < 0)
     {
-        perror("Reading datagram message error");
+        perror("Error: reading rtp packet\n");
+        connected = false;
         close(fd);
         return NULL;
     }
@@ -83,7 +88,7 @@ RtpPacket *Rtp::readPacket()
         size += 4 * (1 + (databuf[size + 2] << 8) + databuf[size + 3]);
 
     packet->payload = new uint8_t[numbytes - size];
-    packet->payloadLen = numbytes-size;
+    packet->payloadLen = numbytes - size;
 
     memcpy(packet->payload, databuf + size, numbytes - size);
 

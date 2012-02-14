@@ -34,7 +34,6 @@ class Rtp
         int fd;
         bool connected;
         struct sockaddr_in sock;
-        struct ip_mreq group;
 
     public:
         Rtp();
