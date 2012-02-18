@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <list>
 #include <vector>
+#include <iostream>
 #include "thread.h"
 
 #define HTTP_MAX_PENDING 10
@@ -56,7 +57,8 @@ class HttpServer : public Thread
         void parseRequest(Request &request, const string &req);
 
         /// Retuns start of param list if any otherwise -1
-        int parseReqParams(RequestParams &params, const string &req);
+        int parseReqParams(RequestParams &params,
+            const string &req, bool isPost);
         /// returns -1 if file not found or cannot read
         int loadFile(uint8_t *bytes, const string &filename);
         string createHeader(int status, const string &contentType,
@@ -64,6 +66,9 @@ class HttpServer : public Thread
 
         void splitString(vector<string> &tokens,
             const string &str, const string &sep);
+
+        /// Url decodes a string (percent decoding)
+        string percentDecode(const string &data);
     public:
         HttpServer(uint16_t port, const string &serverPath,
             WebFrontend *frontend);

@@ -127,23 +127,45 @@ void HttpServer::parseRequest(Request &request, const string &req)
         else if (tokens[0] == "DELETE")
             request.type = HTTP_DELETE;
 
-        int pos = parseReqParams(request.params, tokens[1]);
+        string decoded = percentDecode(tokens[1].c_str());
+        int pos = parseReqParams(request.params, decoded, false);
 
+        std::cout << "\nREQUEST:" << req << std::endl;
         if (pos > -1)
-            request.path = tokens[1].substr(0, (int)pos);
+            request.path = decoded.substr(0, (int)pos);
         else
-            request.path = tokens[1];
+            request.path = decoded;
+    }
+
+    if (request.type == HTTP_POST)
+    {
+        unsigned int bodyPos = req.find("\r\n\r\n");
+        if ((bodyPos != string::npos) && (bodyPos < req.length() - 1))
+        {
+            string body =
+                percentDecode(req.substr(bodyPos + 4, req.length()));
+            RequestParams post;
+            parseReqParams(post, body, true);
+            RequestParams::iterator it;
+            // Hack: appending post params to request params
+            // (treating post key/vals like get key/vals)
+            for (it = post.begin(); it != post.end(); it++)
+                request.params.push_back(make_pair(it->first, it->second));
+        }
     }
 }
 
-int HttpServer::parseReqParams(RequestParams &params, const string &req)
+int HttpServer::parseReqParams(RequestParams &params,
+    const string &req, bool isPost)
 {
     int ret = -1;
     int pos = 0;
 
-    pos = req.find('?');
+    if (!isPost)
+        pos = req.find('?');
 
-    if ((pos != (int)string::npos) && ((int)req.length() - 1 > pos))
+    if (((pos != (int)string::npos) && ((int)req.length() - 1 > pos)) ||
+        isPost)
     {
         ret = pos;
         // skipping '?'
@@ -173,6 +195,32 @@ int HttpServer::parseReqParams(RequestParams &params, const string &req)
     return ret;
 }
 
+string HttpServer::percentDecode(const string &data)
+{
+    string ret = "";
+    unsigned int i = 0;
+    while(i < data.size())
+    {
+        if ((data[i] == '%') && (i < data.size() - 2))
+        {
+            char str[2];
+            str[0] = data[i+1];
+            str[1] = data[i+2];
+            uint64_t tmp = strtoul(str, NULL, 16);
+            ret += (char)tmp;
+            i += 2;
+        }
+        else if (data[i] == '+')
+            ret += " ";
+        else
+            ret += data[i];
+
+        i++;
+    }
+
+    return ret;
+}
+
 string HttpServer::createHeader(int status, const string &contentType,
     const Request &request, const string &reason)
 {
@@ -188,8 +236,8 @@ string HttpServer::createHeader(int status, const string &contentType,
     if ((status == 200) && (contentType == ""))
     {
         // trying to guess the content type
-        // in a very crude way (by .extension)
-        // TODO Uhh not pretty
+        // by .extension
+        // Uhh not pretty
         if (request.path.find(".png") != string::npos)
             type = "image/png";
         else if (request.path.find(".json") != string::npos)
