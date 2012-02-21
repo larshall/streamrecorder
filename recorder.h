@@ -17,6 +17,8 @@ using std::ios;
 // Note: This needs be smaller than buffer - the MTU size
 // (plus a little extra)
 #define MAX_BUFFER_FRAMES MAX_BUFFER_SIZE / 2
+// Reconnect interval in seconds
+#define RECONNECT_INTERVAL 5
 
 class Recorder : public Thread
 {
@@ -90,6 +92,12 @@ class Recorder : public Thread
         {
             ScopedLock lock(&mutex);
             this->filename = filename;
+        }
+
+        uint64_t getPacketLoss()
+        {
+            ScopedLock lock(&mutex);
+            return rtp.getPacketLoss();
         }
 };
 

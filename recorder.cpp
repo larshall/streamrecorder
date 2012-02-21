@@ -29,16 +29,14 @@ void Recorder::run()
             {
                 fprintf(stderr, "Cannot connect to:%s:%i\n",
                     host.c_str(), port);
-                // TODO: reconnect time
-                sleep(5);
-                //break;
+                sleep(RECONNECT_INTERVAL);
             }
         }
 
-        //fprintf(stderr, "\n---");
         RtpPacket *packet = rtp.readPacket();
         if (packet != NULL)
         {
+            // TODO: Add an opstion for debug info
             //fprintf(stderr, "seqnum:%i\n", packet->seqnum);
             //fprintf(stderr, "type:%i\n", packet->type);
             memcpy(buffer + bufferLen, packet->payload, packet->payloadLen);
