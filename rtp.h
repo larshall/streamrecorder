@@ -21,7 +21,7 @@ using std::string;
 
 struct RtpPacket
 {
-    uint8_t *payload;
+    uint8_t payload[MTU_SIZE];
     uint8_t type;
     uint16_t seqnum;
     uint8_t timestamp;
@@ -32,6 +32,9 @@ class Rtp
 {
     private:
         int fd;
+        uint64_t packetLoss;
+        uint16_t lastSeqnum;
+
         bool connected;
         struct sockaddr_in sock;
 
@@ -40,6 +43,11 @@ class Rtp
         bool connect(const string &host, uint16_t port);
         bool receive();
         RtpPacket *readPacket();
+
+        uint64_t getPacketLoss()
+        {
+            return packetLoss;
+        }
 
 };
 

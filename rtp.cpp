@@ -1,9 +1,14 @@
+// Oooh why oh why
+// Have to use UINT64_MAX
+#define __STDC_LIMIT_MACROS
+#include <stdint.h>
 #include "rtp.h"
 
 Rtp::Rtp()
 {
     connected = false;
     fd = -1;
+    packetLoss = 0;
 }
 
 bool Rtp::connect(const string &host, uint16_t port)
@@ -87,9 +92,12 @@ RtpPacket *Rtp::readPacket()
     if (databuf[0] & 0x10) // header extension
         size += 4 * (1 + (databuf[size + 2] << 8) + databuf[size + 3]);
 
-    packet->payload = new uint8_t[numbytes - size];
-    packet->payloadLen = numbytes - size;
+    if ((lastSeqnum != 0) && (packetLoss < UINT64_MAX))
+        packetLoss += packet->seqnum - lastSeqnum;
 
+    lastSeqnum = packet->seqnum;
+
+    packet->payloadLen = numbytes - size;
     memcpy(packet->payload, databuf + size, numbytes - size);
 
     return packet;
