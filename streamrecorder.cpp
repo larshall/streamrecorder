@@ -110,10 +110,10 @@ void StreamRecorder::record(const string &channelId, const string &start)
     Recorder *r = new Recorder("239.255.0.4", 1234);
     r->setTitle(p.title[0].second);
     r->setDescription(p.description[0].second);
-    r->setStartTime(time(NULL) + 10);
-    r->setEndTime(time(NULL) + 20);
+    r->setStartTime(time(NULL) + 1);
+    r->setEndTime(time(NULL) + 120);
     // TODO: allow setting the filename
-    r->setFilename(start + channelId + ".x264");
+    r->setFilename(channelId + start + ".x264");
 
     recorders.push_back(r);
     fprintf(stderr, "Adding recorder\n");
