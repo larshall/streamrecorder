@@ -142,8 +142,9 @@ void HttpServer::parseRequest(Request &request, const string &req)
         unsigned int bodyPos = req.find("\r\n\r\n");
         if ((bodyPos != string::npos) && (bodyPos < req.length() - 1))
         {
+            // extract the body (after "\r\n\r\n")
             string body =
-                percentDecode(req.substr(bodyPos + 4, req.length()));
+                percentDecode(req.substr(bodyPos + 3, req.length()));
             RequestParams post;
             parseReqParams(post, body, true);
             RequestParams::iterator it;
