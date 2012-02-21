@@ -27,7 +27,12 @@ class WebFrontend
         /// Records specified channel at specfied time
         void record(string &contentType, string &output,
             Request &request);
+        /// Settings page for setup channels/ports
+        /// Gets and saves the settings depending on get/post params
+        void settings(string &contentType, string &output,
+            Request &request);
 
+        string getParam(const Request &request, const string &name);
         string jsonEncode(const string &str);
     public:
         WebFrontend(StreamRecorder *streamRecorder);

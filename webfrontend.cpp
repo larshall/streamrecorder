@@ -21,6 +21,8 @@ int WebFrontend::handleRequest(string &contentType, uint8_t *bytes,
         getProgramme(contentType, output, request);
     else if (request.path == "/record")
         record(contentType, output, request);
+    else if (request.path == "/settings")
+        settings(contentType, output, request);
     else
         found = false;
 
@@ -62,15 +64,10 @@ void WebFrontend::getProgrammes(string &contentType, string &output,
     string channelId = "";
     HttpServer::RequestParams::const_iterator it;
     contentType = "application/json";
-
-    for (it = request.params.begin(); it != request.params.end(); it ++)
-    {
-        if (it->first == "channelid")
-            channelId = it->second;
-    }
-
+    channelId = getParam(request, "channelid");
     vector<Programme> programmes;
     stringstream ss;
+
     streamRecorder->getProgrammes(channelId, programmes);
     ss << "{\"Programmes\" : [";
     for (unsigned int i = 0; i < programmes.size(); i++)
@@ -104,13 +101,7 @@ void WebFrontend::getProgramme(string &contentType, string &output,
             start = it->second;
     }
 
-    // TODO: Hack: the httpserver doesn't support urldecode yet,
-    // so the single space in iso8601 extended date is removed
-    // and later added when query the xmltv file
-    int pos = start.find("+");
-    if ((pos > 0) && (pos < (int)start.length()))
-        start.insert(pos, " ");
-
+    std::cout << "\ngetProgramme:" << request.path << std::endl;
     Programme programme;
     stringstream ss;
     streamRecorder->getProgramme(channelId, start, programme);
@@ -143,6 +134,36 @@ void WebFrontend::record(string &contentType, string &output,
             start = it->second;
     }
 
+    streamRecorder->record(channelId, start);
+}
+
+void WebFrontend::settings(string &contentType, string &output,
+    Request &request)
+{
+    if (request.type == HttpServer::HTTP_POST)
+    {
+        // settings page
+        std::cout << "\nSettings page" << std::endl;
+        HttpServer::RequestParams::iterator it;
+        for (it = request.params.begin(); it != request.params.end(); it++)
+        {
+            std::cout << "\npost key:" << it->first << " value:" << it->second << std::endl;
+        }
+    }
+        /*
+    string channelId = "";
+    string start = "";
+    HttpServer::RequestParams::const_iterator it;
+    contentType = "application/json";
+
+    for (it = request.params.begin(); it != request.params.end(); it ++)
+    {
+        if (it->first == "channelid")
+            channelId = it->second;
+        if (it->first == "start")
+            start = it->second;
+    }
+
     // TODO: Hack: the httpserver doesn't support urldecode yet,
     // so the single space in iso8601 extended date is removed
     // and later added when query the xmltv file
@@ -151,6 +172,23 @@ void WebFrontend::record(string &contentType, string &output,
         start.insert(pos, " ");
 
     streamRecorder->record(channelId, start);
+    }*/
+}
+
+string WebFrontend::getParam(const Request &request, const string &name)
+{
+    string ret = "";
+    HttpServer::RequestParams::const_iterator it;
+    for (it = request.params.begin(); it != request.params.end(); it++)
+    {
+        if (name == it->first)
+        {
+            ret = it->second;
+            break;
+        }
+    }
+
+    return ret;
 }
 
 string WebFrontend::jsonEncode(const string &str)
