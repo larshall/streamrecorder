@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <script src="./jquery.min.js"></script>
+    </head>
+
+    <body>
+        <script>
+            $(document).ready(function(){
+                $.getJSON("http://localhost:8182/get-channels", function(json) {
+                    var items = "<option value=''></option>";
+                    for (var i = 0; i < json.Channels.length; i++)
+                        items += '<option value="' + json.Channels[i].id + '">' + json.Channels[i].displayname + '</option>';
+                    $("#channel").html(items);
+                });
+            });
+        </script>
+
+
+        <form method="post" action="save-settings">
+            <h1>Settings</h1>
+            Channel:
+            <select id="channel" name="channel"></select>
+            <br />
+            Host:
+            <input type="text" name = "host" />
+            <br />
+            Port:
+            <input type="text" name = "port" />
+            <br />
+            <input type="submit" text="Save" name="settings" value="Save" />
+
+        </form>
+    </body>
+</html>
