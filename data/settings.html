@@ -1,23 +1,73 @@
 <html>
     <head>
         <script src="./jquery.min.js"></script>
+        <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
     </head>
 
     <body>
         <script>
-            $(document).ready(function(){
+            function getChannelStreams()
+            {
+                 $.getJSON("http://localhost:8182/get-channelstreams", function(json) {
+                    var items = '<table cellspacing="0" cellpadding="5" border="1">';
+                    for (var i = 0; i < json.ChannelStreams.length; i++)
+                    {
+                        if (i % 2)
+                            color = '#fff';
+                        else
+                            color = '#ccc';
+
+                        items += '<tr style="background-color:' + color + '; border-size:0;">';
+                        items += '<td><b>' + json.ChannelStreams[i].channel + '</b></td>';
+                        items += '<td>' + json.ChannelStreams[i].host + '</td>';
+                        items += '<td>' + json.ChannelStreams[i].port + '</td>';
+                        items += '<td><div id="delcs">Delete</div></b></td>';
+                        items += '<td><a href="delete-channelstream?cs=' + json.ChannelStreams[i].channel + '">Delete</b></td>';
+                        items += '</tr>';
+                    }
+                    $("#channelstreams").html(items);
+                });
+            }
+
+            function getAllChannels()
+            {
                 $.getJSON("http://localhost:8182/get-channels", function(json) {
                     var items = "<option value=''></option>";
                     for (var i = 0; i < json.Channels.length; i++)
                         items += '<option value="' + json.Channels[i].id + '">' + json.Channels[i].displayname + '</option>';
                     $("#channel").html(items);
                 });
+
+            }
+            
+            $(document).ready(function(){
+                getAllChannels();
+                getChannelStreams();
+                $("#save-channel").submit(function(event) {
+                    event.preventDefault();
+                    $.post("save-channelstream", $("#save-channel").serialize())
+/*                    var $form = $(this),
+                    channel = $form.find( 'input[name="channel"]').val(),
+                    channel = $form.find( 'input[name="host"]').val(),
+                    channel = $form.find( 'input[name="port"]').val(),
+
+
+                    url = $form.attr( 'action' );
+                    $.post( url, { s: term },
+                        function( data ) {
+                            alert("YO");
+                        }
+                    );
+*/
+                });
             });
+
         </script>
 
 
-        <form method="post" action="save-settings">
+        <form method="post" id="save-channel" action="save-channelstream">
             <h1>Settings</h1>
+            <h2>Add Channel stream</h2>
             Channel:
             <select id="channel" name="channel"></select>
             <br />
@@ -28,7 +78,10 @@
             <input type="text" name = "port" />
             <br />
             <input type="submit" text="Save" name="settings" value="Save" />
-
+        </form>
+        <h2>Channel streams</h2>
+        <form method="post" action="delete-channelstream">
+            <div id="channelstreams" />
         </form>
     </body>
 </html>
