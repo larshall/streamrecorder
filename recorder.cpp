@@ -36,9 +36,6 @@ void Recorder::run()
         RtpPacket *packet = rtp.readPacket();
         if (packet != NULL)
         {
-            // TODO: Add an opstion for debug info
-            //fprintf(stderr, "seqnum:%i\n", packet->seqnum);
-            //fprintf(stderr, "type:%i\n", packet->type);
             memcpy(buffer + bufferLen, packet->payload, packet->payloadLen);
             bufferLen += packet->payloadLen;
 
