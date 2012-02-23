@@ -5,14 +5,6 @@
 
 int main()
 {
-    /*
-    XmlTv xml;
-    if (xml.loadFile("data/tv.xml"))
-    {
-        fprintf(stderr, "Loaded file\n");
-        xml.readChannels();
-    }
-    */
     StreamRecorder streamRecorder;
     WebFrontend frontend(&streamRecorder);
 
@@ -24,22 +16,12 @@ int main()
         // once a second is enough for recordings
         sleep(1);
     }
-/*
-    Recorder recorder("239.255.0.4", 1234);
-    recorder.start();
-    while(true)
-    {
-        sleep(5);
-        recorder.stop();
-        sleep(1);
-        break;
-    }
-*/
 }
 
 StreamRecorder::StreamRecorder()
 {
     xmltv.loadFile("data/tv.xml", "da");
+    settings.load("data/settings.xml");
     lastReap = time(NULL);
 }
 
@@ -112,11 +94,47 @@ void StreamRecorder::record(const string &channelId, const string &start)
     r->setDescription(p.description[0].second);
     r->setStartTime(time(NULL) + 1);
     r->setEndTime(time(NULL) + 120);
-    // TODO: allow setting the filename
+    // TODO: user should be able to set the filename
     r->setFilename(channelId + start + ".x264");
 
     recorders.push_back(r);
     fprintf(stderr, "Adding recorder\n");
+}
+
+void StreamRecorder::saveChannelStream(const string &channel,
+    const string &host, const string &port)
+{
+    ScopedLock lock(&mutex);
+    ChannelStream stream;
+    stream.channel = channel;
+    stream.host = host;
+    stream.port = atoi(port.c_str());
+    settings.channelStreams.push_back(stream);
+    settings.save();
+    // reload configuration with the new entry
+    settings.reload();
+}
+
+void StreamRecorder::deleteChannelStream(const string &channel)
+{
+    ScopedLock lock(&mutex);
+    int idx = -1;
+    for (unsigned int i = 0; i < settings.channelStreams.size(); i++)
+    {
+        if (settings.channelStreams[i].channel == channel)
+            idx = i;
+    }
+    if ((idx >= 0) && (idx < settings.channelStreams.size()))
+        settings.channelStreams.erase(settings.channelStreams.begin() + idx);
+    settings.save();
+    // reload config file after deleting the entry
+    settings.reload();
+}
+
+void StreamRecorder::getChannelStreams(vector<ChannelStream> &streams)
+{
+    for (unsigned int i = 0; i < settings.channelStreams.size(); i++)
+        streams.push_back(settings.channelStreams[i]);
 }
 
 void StreamRecorder::reapRecorders()

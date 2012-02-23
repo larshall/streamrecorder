@@ -1,6 +1,7 @@
 #ifndef STREAMRECORDER_H
 #define STREAMRECORDER_H
 
+#include "settings.h"
 #include "xmltv.h"
 #include "httpserver.h"
 #include "thread.h"
@@ -19,6 +20,7 @@ class StreamRecorder
         // (So every programme gets it's own recorder thread)
         list<Recorder*> recorders;
         XmlTv xmltv;
+        Settings settings;
         Mutex mutex;
         /// the time of last reap
         time_t lastReap;
@@ -33,6 +35,10 @@ class StreamRecorder
         void getProgramme(const string &channelId,
             const string &start, Programme &programme);
         void record(const string &channelId, const string &start);
+        void saveChannelStream(const string &channel, const string &host,
+            const string &port);
+        void getChannelStreams(vector<ChannelStream> &streams);
+        void deleteChannelStream(const string &channel);
 };
 
 #endif
