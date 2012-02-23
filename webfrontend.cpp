@@ -21,8 +21,12 @@ int WebFrontend::handleRequest(string &contentType, uint8_t *bytes,
         getProgramme(contentType, output, request);
     else if (request.path == "/record")
         record(contentType, output, request);
-    else if (request.path == "/settings")
-        settings(contentType, output, request);
+    else if (request.path == "/save-channelstream")
+        saveChannelStream(contentType, output, request);
+    else if (request.path == "/get-channelstreams")
+        getChannelStreams(contentType, output, request);
+    else if (request.path == "/delete-channelstream")
+        deleteChannelStream(contentType, output, request);
     else
         found = false;
 
@@ -73,8 +77,8 @@ void WebFrontend::getProgrammes(string &contentType, string &output,
     for (unsigned int i = 0; i < programmes.size(); i++)
     {
         ss << " { ";
-        ss << "\"start\" : \"" + programmes[i].start + "\" , ";
-        ss << "\"title\" : \"" + programmes[i].title[0].second + "\"";
+        ss << "\"start\" : \"" << programmes[i].start << "\" , ";
+        ss << "\"title\" : \"" << programmes[i].title[0].second << "\"";
         ss << " } ";
         // TODO: create a general vector->json array function
         if (i != programmes.size() - 1)
@@ -106,11 +110,11 @@ void WebFrontend::getProgramme(string &contentType, string &output,
     stringstream ss;
     streamRecorder->getProgramme(channelId, start, programme);
     ss << " { ";
-    ss << "\"start\" : \"" + programme.start + "\" , ";
+    ss << "\"start\" : \"" << programme.start << "\" , ";
     if ((programme.title.size() > 0) && (programme.description.size() > 0))
     {
-        ss << "\"title\" : \"" + programme.title[0].second + "\", ";
-        ss << "\"description\" : \"" +
+        ss << "\"title\" : \"" << programme.title[0].second << "\", ";
+        ss << "\"description\" : \"" <<
             jsonEncode(programme.description[0].second) + "\"";
     }
     ss << " } ";
@@ -137,42 +141,63 @@ void WebFrontend::record(string &contentType, string &output,
     streamRecorder->record(channelId, start);
 }
 
-void WebFrontend::settings(string &contentType, string &output,
+void WebFrontend::saveChannelStream(string &contentType, string &output,
     Request &request)
 {
     if (request.type == HttpServer::HTTP_POST)
     {
         // settings page
-        std::cout << "\nSettings page" << std::endl;
         HttpServer::RequestParams::iterator it;
+        string host = "";
+        string port = "";
+        string channel = "";
         for (it = request.params.begin(); it != request.params.end(); it++)
         {
-            std::cout << "\npost key:" << it->first << " value:" << it->second << std::endl;
+            if (it->first == "channel")
+                channel = it->second;
+            else if (it->first == "host")
+                host = it->second;
+            else if (it->first == "port")
+                port = it->second;
         }
+
+        streamRecorder->saveChannelStream(channel, host, port);
     }
-        /*
-    string channelId = "";
-    string start = "";
-    HttpServer::RequestParams::const_iterator it;
+}
+
+void WebFrontend::getChannelStreams(string &contentType, string &output,
+    Request &request)
+{
     contentType = "application/json";
+    stringstream ss;
+    vector<ChannelStream> channels;
+    streamRecorder->getChannelStreams(channels);
 
-    for (it = request.params.begin(); it != request.params.end(); it ++)
+    ss << "{\"ChannelStreams\" : [";
+    for (unsigned int i = 0; i < channels.size(); i++)
     {
-        if (it->first == "channelid")
-            channelId = it->second;
-        if (it->first == "start")
-            start = it->second;
+        ss << " { ";
+        ss << "\"channel\" : \"" << channels[i].channel << "\" , ";
+        ss << "\"host\" : \"" << channels[i].host << "\" , ";
+        ss << "\"port\" : \"" << channels[i].port << "\"";
+        ss << " } ";
+
+        if (i != channels.size() - 1)
+            ss << ",";
     }
+    ss << "]}";
+    output = ss.str();
+}
 
-    // TODO: Hack: the httpserver doesn't support urldecode yet,
-    // so the single space in iso8601 extended date is removed
-    // and later added when query the xmltv file
-    int pos = start.find("+");
-    if ((pos > 0) && (pos < (int)start.length()))
-        start.insert(pos, " ");
+void WebFrontend::deleteChannelStream(string &contentType, string &output,
+    Request &request)
+{
+    vector<ChannelStream> channels;
+    streamRecorder->getChannelStreams(channels);
 
-    streamRecorder->record(channelId, start);
-    }*/
+    string channel = getParam(request, "cs");
+    if (channel != "")
+        streamRecorder->deleteChannelStream(channel);
 }
 
 string WebFrontend::getParam(const Request &request, const string &name)
@@ -207,17 +232,9 @@ string WebFrontend::jsonEncode(const string &str)
             case '/':
                 break;
             case '\n':
-                ss << " ";
-                break;
             case '\r':
-                ss << " ";
-                break;
             case '\f':
-                ss << " ";
-                break;
             case '\b':
-                ss << " ";
-                break;
             case '\t':
                 ss << " ";
                 break;

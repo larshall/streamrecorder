@@ -15,7 +15,7 @@ class WebFrontend
     private:
         StreamRecorder *streamRecorder;
 
-        /// Get all channels
+        /// Get all channels from a xmltv file
         void getChannels(string &contentType, string &output,
             Request &request);
         //// Get programmes for specified channel
@@ -27,10 +27,17 @@ class WebFrontend
         /// Records specified channel at specfied time
         void record(string &contentType, string &output,
             Request &request);
-        /// Settings page for setup channels/ports
-        /// Gets and saves the settings depending on get/post params
-        void settings(string &contentType, string &output,
+        /// Saves channel stream
+        void saveChannelStream(string &contentType, string &output,
             Request &request);
+        /// Get all channel streams configured
+        void getChannelStreams(string &contentType, string &output,
+            Request &request);
+        /// Deletes the specified channelstream (id as param and is
+        /// is just the index in the vector
+        void deleteChannelStream(string &contentType, string &output,
+            Request &request);
+
 
         string getParam(const Request &request, const string &name);
         string jsonEncode(const string &str);
