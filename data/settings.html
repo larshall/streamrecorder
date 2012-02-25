@@ -1,36 +1,39 @@
 <html>
     <head>
         <script src="./jquery.min.js"></script>
-        <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+        <meta http-equiv="cache-control" content="no-cache">
     </head>
 
     <body>
         <script>
-            function getChannelStreams()
+            function load()
             {
                  $.getJSON("http://localhost:8182/get-channelstreams", function(json) {
-                    var items = '<table cellspacing="0" cellpadding="5" border="1">';
+                    var items = '<form method="post" id="delete-channel" action="delete-channelstream">';
+                    items += '<table cellspacing="0" cellpadding="5" border="1">';
                     for (var i = 0; i < json.ChannelStreams.length; i++)
                     {
                         if (i % 2)
                             color = '#fff';
                         else
                             color = '#ccc';
-
-                        items += '<tr style="background-color:' + color + '; border-size:0;">';
+                        items += '<tr style="background-color:' + color + ';">';
                         items += '<td><b>' + json.ChannelStreams[i].channel + '</b></td>';
                         items += '<td>' + json.ChannelStreams[i].host + '</td>';
                         items += '<td>' + json.ChannelStreams[i].port + '</td>';
-                        items += '<td><div id="delcs">Delete</div></b></td>';
-                        items += '<td><a href="delete-channelstream?cs=' + json.ChannelStreams[i].channel + '">Delete</b></td>';
+                        items += '<input type="hidden" name="channel-id" value="' + json.ChannelStreams[i].channelid + '"/>';
+                        items += '<td><a href="#" id="' + i + '" title="submit">Delete</a></td>';
+
                         items += '</tr>';
+
                     }
+                    items += '</table>';
+                    items += '</form>';
+
                     $("#channelstreams").html(items);
                 });
-            }
 
-            function getAllChannels()
-            {
+
                 $.getJSON("http://localhost:8182/get-channels", function(json) {
                     var items = "<option value=''></option>";
                     for (var i = 0; i < json.Channels.length; i++)
@@ -41,24 +44,28 @@
             }
             
             $(document).ready(function(){
-                getAllChannels();
-                getChannelStreams();
+                load();
+
+
                 $("#save-channel").submit(function(event) {
                     event.preventDefault();
                     $.post("save-channelstream", $("#save-channel").serialize())
-/*                    var $form = $(this),
-                    channel = $form.find( 'input[name="channel"]').val(),
-                    channel = $form.find( 'input[name="host"]').val(),
-                    channel = $form.find( 'input[name="port"]').val(),
+                    .success(function()
+                    {
+                        load();
+                    })
+                });
 
-
-                    url = $form.attr( 'action' );
-                    $.post( url, { s: term },
-                        function( data ) {
-                            alert("YO");
-                        }
-                    );
-*/
+                // Attaches the event to the delete-channel form in the 'future',
+                // because the dom changes after each update/delete
+                // Abusing a links id to be able to know which link is submitted
+                // while still being able to submit.. Phew not pretty
+                $("a[title=submit]").live('click', function(){
+                    $.post("delete-channelstream", { channelid: $(this).attr("id") })
+                    .success(function(data)
+                    {
+                        load();
+                    })
                 });
             });
 
@@ -80,8 +87,6 @@
             <input type="submit" text="Save" name="settings" value="Save" />
         </form>
         <h2>Channel streams</h2>
-        <form method="post" action="delete-channelstream">
-            <div id="channelstreams" />
-        </form>
+        <div id="channelstreams" />
     </body>
 </html>
