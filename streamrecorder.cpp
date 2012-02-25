@@ -115,20 +115,24 @@ void StreamRecorder::saveChannelStream(const string &channel,
     settings.reload();
 }
 
-void StreamRecorder::deleteChannelStream(const string &channel)
+void StreamRecorder::deleteChannelStream(unsigned int channelId)
 {
     ScopedLock lock(&mutex);
-    int idx = -1;
+/*    int idx = -1;
     for (unsigned int i = 0; i < settings.channelStreams.size(); i++)
     {
         if (settings.channelStreams[i].channel == channel)
             idx = i;
     }
     if ((idx >= 0) && (idx < settings.channelStreams.size()))
-        settings.channelStreams.erase(settings.channelStreams.begin() + idx);
-    settings.save();
-    // reload config file after deleting the entry
-    settings.reload();
+    */
+    if ((channelId >= 0) && (channelId < settings.channelStreams.size()))
+    {
+        settings.channelStreams.erase(settings.channelStreams.begin() + channelId);
+        settings.save();
+        // reload config file after deleting the entry
+        settings.reload();
+    }
 }
 
 void StreamRecorder::getChannelStreams(vector<ChannelStream> &streams)

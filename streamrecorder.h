@@ -16,15 +16,15 @@
 class StreamRecorder
 {
     private:
-        // every recording have a corresponding Recorder
-        // (So every programme gets it's own recorder thread)
+        /// every recording have a corresponding Recorder
+        /// (So every programme gets it's own recorder thread)
         list<Recorder*> recorders;
         XmlTv xmltv;
         Settings settings;
         Mutex mutex;
         /// the time of last reap
         time_t lastReap;
-        /// Reaping finished recordings
+        /// Reaps finished recordings
         void reapRecorders();
     public:
         StreamRecorder();
@@ -38,7 +38,7 @@ class StreamRecorder
         void saveChannelStream(const string &channel, const string &host,
             const string &port);
         void getChannelStreams(vector<ChannelStream> &streams);
-        void deleteChannelStream(const string &channel);
+        void deleteChannelStream(unsigned int channelId);
 };
 
 #endif
