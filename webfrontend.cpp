@@ -177,6 +177,7 @@ void WebFrontend::getChannelStreams(string &contentType, string &output,
     for (unsigned int i = 0; i < channels.size(); i++)
     {
         ss << " { ";
+        ss << "\"channelid\" : \"" << i << "\" , ";
         ss << "\"channel\" : \"" << channels[i].channel << "\" , ";
         ss << "\"host\" : \"" << channels[i].host << "\" , ";
         ss << "\"port\" : \"" << channels[i].port << "\"";
@@ -195,9 +196,14 @@ void WebFrontend::deleteChannelStream(string &contentType, string &output,
     vector<ChannelStream> channels;
     streamRecorder->getChannelStreams(channels);
 
-    string channel = getParam(request, "cs");
+    string channel = getParam(request, "channelid");
     if (channel != "")
-        streamRecorder->deleteChannelStream(channel);
+    {
+        int channelId = atoi(channel.c_str());
+        if (channelId >= 0)
+            streamRecorder->deleteChannelStream(channelId);
+
+    }
 }
 
 string WebFrontend::getParam(const Request &request, const string &name)
