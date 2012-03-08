@@ -204,9 +204,10 @@ string HttpServer::percentDecode(const string &data)
     {
         if ((data[i] == '%') && (i < data.size() - 2))
         {
-            char str[2];
+            char str[3];
             str[0] = data[i+1];
             str[1] = data[i+2];
+            str[2] = '\0';
             uint64_t tmp = strtoul(str, NULL, 16);
             ret += (char)tmp;
             i += 2;
