@@ -1,52 +1,92 @@
 <html>
     <head>
         <script src="./jquery.min.js"></script>
+        <script src="./jquery.min.js"></script>
+        <script src="./date.js"></script>
+        <script src="./jquery.datePicker.js"></script>
+        <link rel="stylesheet" type="text/css" media="screen" href="./datePicker.css">
     </head>
     <body>
         <script>
-            function escapeJson(valueToEscape) {
-                if (valueToEscape != null && valueToEscape != "") {
+            // channel and start time is needed info for getting a specific programme
+            var channelId = "";
+            var start = "";
+            // selectedDate is default current date
+            var selectedDate = new Date();
+            
+            function escapeJson(valueToEscape)
+            {
+                if (valueToEscape != null && valueToEscape != "")
                     return valueToEscape.replace(/\n/g, "\\n");
-                } else {
+                else
                     return valueToEscape;
-                }
             }
-            $(document).ready(function(){
-                // channel and start time is needed info for getting a specific programme
-                var channelId = "";
-                var start = "";
 
-                $.getJSON("http://localhost:8182/get-channels", function(json) {
+            function loadProgrammes()
+            {
+                // reset programme div
+                $("#programme").html("");
+                channelId = $("#channels").val();
+                $.getJSON("get-programmes?channelid=" + channelId + "&date=" + selectedDate.asString(), function(json) {
+                var items = "<option value=''></option>";
+                for (var i = 0; i < json.Programmes.length; i++)
+                    items += '<option value="' + json.Programmes[i].start + '">' + json.Programmes[i].title + '</option>';
+                    $("#programmes").html(items);
+                });
+           
+            }
+
+            $(document).ready(function(){
+
+                // The inline datepicker
+                $("#datepicker").datePicker({inline:true, startDate: '19700101'})
+                .bind('dateSelected',
+                function(e, d, $td)
+                {
+                    selectedDate = d;
+                    loadProgrammes();
+                });
+
+                $.getJSON("get-channels", function(json) {
                     var items = "<option value=''></option>";
                     for (var i = 0; i < json.Channels.length; i++)
                         items += '<option value="' + json.Channels[i].id + '">' + json.Channels[i].displayname + '</option>';
+
                     $("#channels").html(items);
                 });
 
                 $("#channels").change(function() {
-                    // reset programme div
-                    $("#programme").html("");
-                    channelId = $("#channels").val();
-                    $.getJSON("http://localhost:8182/get-programmes?channelid=" + channelId, function(json) {
-                        var items = "<option value=''></option>";
-                        for (var i = 0; i < json.Programmes.length; i++)
-                            items += '<option value="' + json.Programmes[i].start + '">' + json.Programmes[i].title + '</option>';
-                        $("#programmes").html(items);
-                    });
+                    loadProgrammes();
                 });
+
                 $("#programmes").change(function() {
                     start = $("#programmes").val();
-                    start = encodeURIComponent(start);
-                    var programmeId ="channelid=" + channelId + "&start=" + start;
-                    $.getJSON("http://localhost:8182/get-programme?" + programmeId, function(json) {
+                    var encStart = encodeURIComponent(start);
+                    var programmeId ="channelid=" + channelId + "&start=" + encStart;
+                    $.getJSON("get-programme?" + programmeId, function(json) {
                         json.description = escapeJson(json.description);
                         var items = "";
                         items += '<h2>' + json.title + '</h2>';
                         items += '<p>' + json.description + '</p>';
                         items += '<a href="record?' + programmeId + '">Record programme</a>';
+                        items += '<input type="submit" value="Save" />';
+
                         $("#programme").html(items);
                     });
                 });
+                $("#record-programme").live("submit", function(event){
+                    event.preventDefault();
+                    $.post("record", {"channelid": channelId, "start": start})
+                    .success(function(data)
+                    {
+                        start = "";
+                        channelId = "";
+                        alert("Recording");
+
+                        //load();
+                    })
+                });
+
            });
         </script>
 
@@ -54,10 +94,17 @@
         <p> StreamRecorder records
         h.264 rtp packets from a uni/multicast stream
         </p>
+        <a href="settings.html">Settings</a>
+        <div id="datepicker">test</div>
+
         <h2>Record Channels</h2>
-        <select id="channels"></select>
-        <h2>Programmes</h2>
-        <select id="programmes"></select>
-        <div id="programme" />
+        <br />
+        <form method="post" id="record-programme" action="record">
+            <select id="channels"></select>
+            <h2>Programmes</h2>
+            <select id="programmes"></select>
+            <div id="programme" />
+            <br />
+        </form>
     </body>
 </html>
