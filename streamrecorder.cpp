@@ -13,7 +13,7 @@ int main()
     while(true)
     {
         streamRecorder.process();
-        // once a second is enough for recordings
+        // once a second is enough for starting stopping recordings
         sleep(1);
     }
 }
@@ -70,10 +70,10 @@ void StreamRecorder::getChannels(vector<Channel> &channels)
 }
 
 void StreamRecorder::getProgrammes(const string &channelId,
-    vector<Programme> &programmes)
+    vector<Programme> &programmes, const string &date)
 {
     ScopedLock lock(&mutex);
-    xmltv.readProgrammes(channelId, programmes);
+    xmltv.readProgrammes(channelId, programmes, date);
 }
 
 void StreamRecorder::getProgramme(const string &channelId,
@@ -83,22 +83,39 @@ void StreamRecorder::getProgramme(const string &channelId,
     xmltv.readProgramme(channelId, start, programme);
 }
 
-void StreamRecorder::record(const string &channelId, const string &start)
+bool StreamRecorder::record(const string &channelId, const string &start)
 {
     ScopedLock lock(&mutex);
     Programme p;
-    xmltv.readProgramme(channelId, start, p);
 
-    Recorder *r = new Recorder("239.255.0.4", 1234);
-    r->setTitle(p.title[0].second);
-    r->setDescription(p.description[0].second);
-    r->setStartTime(time(NULL) + 1);
-    r->setEndTime(time(NULL) + 120);
-    // TODO: user should be able to set the filename
-    r->setFilename(channelId + start + ".x264");
+    ChannelStream cs;
+    bool found = false;
+    // TOOD: return error if no channelstream is found
+    for (unsigned int i = 0; i < settings.channelStreams.size(); i++)
+    {
+        if (settings.channelStreams[i].channel == channelId)
+        {
+            cs = settings.channelStreams[i];
+            found = true;
+        }
+    }
 
-    recorders.push_back(r);
-    fprintf(stderr, "Adding recorder\n");
+    if (found)
+    {
+        xmltv.readProgramme(channelId, start, p);
+        Recorder *r = new Recorder(cs.host, cs.port);
+        r->setTitle(p.title[0].second);
+        r->setDescription(p.description[0].second);
+        r->setStartTime(time(NULL) + 1);
+        r->setEndTime(time(NULL) + 120);
+        // TODO: user should be able to set the filename
+        r->setFilename(channelId + start + ".x264");
+
+        recorders.push_back(r);
+        fprintf(stderr, "Adding recorder\n");
+    }
+
+    return found;
 }
 
 void StreamRecorder::saveChannelStream(const string &channel,
@@ -118,14 +135,6 @@ void StreamRecorder::saveChannelStream(const string &channel,
 void StreamRecorder::deleteChannelStream(unsigned int channelId)
 {
     ScopedLock lock(&mutex);
-/*    int idx = -1;
-    for (unsigned int i = 0; i < settings.channelStreams.size(); i++)
-    {
-        if (settings.channelStreams[i].channel == channel)
-            idx = i;
-    }
-    if ((idx >= 0) && (idx < settings.channelStreams.size()))
-    */
     if ((channelId >= 0) && (channelId < settings.channelStreams.size()))
     {
         settings.channelStreams.erase(settings.channelStreams.begin() + channelId);

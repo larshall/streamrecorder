@@ -22,19 +22,22 @@ class StreamRecorder
         XmlTv xmltv;
         Settings settings;
         Mutex mutex;
-        /// the time of last reap
+        /// the time of the last reap
         time_t lastReap;
         /// Reaps finished recordings
         void reapRecorders();
     public:
         StreamRecorder();
         void process();
+        /// Gets channels (created channelstreams)
         void getChannels(vector<Channel> &channels);
         void getProgrammes(const string &channelId,
-            vector<Programme> &programmes);
+            vector<Programme> &programmes, const string &date);
         void getProgramme(const string &channelId,
             const string &start, Programme &programme);
-        void record(const string &channelId, const string &start);
+        /// Records thre request programme/channel
+        /// If Channelstream isn't found false is returned
+        bool record(const string &channelId, const string &start);
         void saveChannelStream(const string &channel, const string &host,
             const string &port);
         void getChannelStreams(vector<ChannelStream> &streams);
