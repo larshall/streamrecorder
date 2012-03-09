@@ -43,18 +43,18 @@ void WebFrontend::getChannels(string &contentType, string &output,
     Request &request)
 {
     contentType = "application/json";
-    vector<Channel> channels;
+    vector<ChannelStream> channelStreams;
     stringstream ss;
-    streamRecorder->getChannels(channels);
+    streamRecorder->getChannelStreams(channelStreams);
     ss << "{\"Channels\" : [";
-    for (unsigned int i = 0; i < channels.size(); i++)
+    for (unsigned int i = 0; i < channelStreams.size(); i++)
     {
         ss << " { ";
-        ss << "\"id\" : \"" + channels[i].id + "\" , ";
-        ss << "\"displayname\" : \"" + channels[i].displayName + "\"";
+        ss << "\"id\" : \"" + channelStreams[i].channel + "\" , ";
+        ss << "\"displayname\" : \"" + channelStreams[i].channel + "\"";
         ss << " } ";
 
-        if (i != channels.size() - 1)
+        if (i != channelStreams.size() - 1)
             ss << ",";
     }
     ss << "]}";
@@ -65,14 +65,15 @@ void WebFrontend::getChannels(string &contentType, string &output,
 void WebFrontend::getProgrammes(string &contentType, string &output,
     Request &request)
 {
-    string channelId = "";
     HttpServer::RequestParams::const_iterator it;
     contentType = "application/json";
-    channelId = getParam(request, "channelid");
+    string channelId = getParam(request, "channelid");
+    string date = getParam(request, "date");
+
     vector<Programme> programmes;
     stringstream ss;
 
-    streamRecorder->getProgrammes(channelId, programmes);
+    streamRecorder->getProgrammes(channelId, programmes, date);
     ss << "{\"Programmes\" : [";
     for (unsigned int i = 0; i < programmes.size(); i++)
     {
@@ -105,7 +106,6 @@ void WebFrontend::getProgramme(string &contentType, string &output,
             start = it->second;
     }
 
-    std::cout << "\ngetProgramme:" << request.path << std::endl;
     Programme programme;
     stringstream ss;
     streamRecorder->getProgramme(channelId, start, programme);
@@ -138,7 +138,10 @@ void WebFrontend::record(string &contentType, string &output,
             start = it->second;
     }
 
-    streamRecorder->record(channelId, start);
+    if (!streamRecorder->record(channelId, start))
+    {
+        // TODO: return error
+    }
 }
 
 void WebFrontend::saveChannelStream(string &contentType, string &output,
