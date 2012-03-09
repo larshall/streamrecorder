@@ -27,9 +27,12 @@ void XmlTv::readChannels(vector<Channel> &channels)
 }
 
 void XmlTv::readProgrammes(const string &channelId,
-    vector<Programme> &programmes)
+    vector<Programme> &programmes, const string &date)
 {
-    string query  = "/tv/programme[@channel = '" + channelId + "']";
+    // Note: It doesn't care about timezones define in 'start' node
+    string query  = "/tv/programme[@channel = '" + channelId +
+        "' and contains(@start, " + date  + ")]";
+    
     pugi::xpath_node_set tools = doc.select_nodes(query.c_str());
     for (pugi::xpath_node_set::const_iterator it = tools.begin();
         it != tools.end(); ++it)

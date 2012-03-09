@@ -48,7 +48,7 @@ class XmlTv
         bool loadFile(const string &filename, const string &lang);
         void readChannels(vector<Channel> &channels);
         void readProgrammes(const string &channelId,
-            vector<Programme> &programmes);
+            vector<Programme> &programmes, const string &date);
         void readProgramme(const string &channelId,
             const string &start, Programme &programme);
 
