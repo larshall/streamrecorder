@@ -68,8 +68,7 @@
                         var items = "";
                         items += '<h2>' + json.title + '</h2>';
                         items += '<p>' + json.description + '</p>';
-                        items += '<a href="record?' + programmeId + '">Record programme</a>';
-                        items += '<input type="submit" value="Save" />';
+                        items += '<input type="submit" value="Record" />';
 
                         $("#programme").html(items);
                     });
@@ -82,8 +81,6 @@
                         start = "";
                         channelId = "";
                         alert("Recording");
-
-                        //load();
                     })
                 });
 
