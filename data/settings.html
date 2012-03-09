@@ -71,21 +71,21 @@
 
         </script>
 
-
-        <form method="post" id="save-channel" action="save-channelstream">
+        <a href="index.html">Recordings</a>
             <h1>Settings</h1>
             <h2>Add Channel stream</h2>
-            Channel:
-            <select id="channel" name="channel"></select>
-            <br />
-            Host:
-            <input type="text" name = "host" />
-            <br />
-            Port:
-            <input type="text" name = "port" />
-            <br />
-            <input type="submit" text="Save" name="settings" value="Save" />
-        </form>
+            <form method="post" id="save-channel" action="save-channelstream">
+                Channel:
+                <select id="channel" name="channel"></select>
+                <br />
+                Host:
+                <input type="text" name = "host" />
+                <br />
+                Port:
+                <input type="text" name = "port" />
+                <br />
+                <input type="submit" value="Save" />
+            </form>
         <h2>Channel streams</h2>
         <div id="channelstreams" />
     </body>
