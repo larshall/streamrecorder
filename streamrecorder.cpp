@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     char *opti = NULL;
     char *optd = NULL;
 
-    string xmltvPath = DEFAULT_XMLTV_PATH;
+    string xmltvFile = DEFAULT_XMLTV_FILE;
     string datadirPath = DEFAULT_DATADIR_PATH;
     string httpPath = DEFAULT_HTTPSERVER_PATH;
     uint16_t webserverPort = DEFAULT_WEBSERVER_PORT;
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
     if (ok)
     {
-        StreamRecorder streamRecorder;
+        StreamRecorder streamRecorder(xmltvFile);
         WebFrontend frontend(&streamRecorder);
 
         HttpServer server(webserverPort, httpPath, &frontend);
@@ -74,9 +74,9 @@ void showUsage()
     fprintf(stdout, "[-p webserverport] [-i httpserver path]\n");
 }
 
-StreamRecorder::StreamRecorder()
+StreamRecorder::StreamRecorder(const string &xmltvFile)
 {
-    xmltv.loadFile("data/tv.xml", "da");
+    xmltv.loadFile(xmltvFile, "da");
     settings.load("data/settings.xml");
     lastReap = time(NULL);
 }
@@ -202,7 +202,7 @@ void StreamRecorder::deleteChannelStream(unsigned int channelId)
     {
         settings.channelStreams.erase(settings.channelStreams.begin() + channelId);
         settings.save();
-        // reload config file after deleting the entry
+        // Reload config file after deleting the entry
         settings.reload();
     }
 }

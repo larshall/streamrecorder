@@ -8,7 +8,7 @@
 #include "thread.h"
 #include "recorder.h"
 
-#define DEFAULT_XMLTV_PATH "./data"
+#define DEFAULT_XMLTV_FILE "./data/tv.xml"
 #define DEFAULT_DATADIR_PATH "./data"
 #define DEFAULT_HTTPSERVER_PATH "./data"
 #define DEFAULT_WEBSERVER_PORT 8182
@@ -24,7 +24,7 @@ void showUsage();
 class StreamRecorder
 {
     private:
-        /// every recording have a corresponding Recorder
+        /// Every recording have a corresponding Recorder
         /// (So every programme gets it's own recorder thread)
         list<Recorder*> recorders;
         XmlTv xmltv;
@@ -35,7 +35,7 @@ class StreamRecorder
         /// Reaps finished recordings
         void reapRecorders();
     public:
-        StreamRecorder();
+        StreamRecorder(const string &xmltvFile);
         void process();
         /// Gets channels (created channelstreams)
         void getChannels(vector<Channel> &channels);
@@ -43,8 +43,8 @@ class StreamRecorder
             vector<Programme> &programmes, const string &date);
         void getProgramme(const string &channelId,
             const string &start, Programme &programme);
-        /// Records thre request programme/channel
-        /// If Channelstream isn't found false is returned
+        /// Records the requested programme/channel
+        /// If Channelstream isn't found, false is returned
         bool record(const string &channelId, const string &start);
         void saveChannelStream(const string &channel, const string &host,
             const string &port);
