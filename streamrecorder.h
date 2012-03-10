@@ -1,17 +1,25 @@
 #ifndef STREAMRECORDER_H
 #define STREAMRECORDER_H
 
+#include <limits.h>
 #include "settings.h"
 #include "xmltv.h"
 #include "httpserver.h"
 #include "thread.h"
 #include "recorder.h"
 
+#define DEFAULT_XMLTV_PATH "./data"
+#define DEFAULT_DATADIR_PATH "./data"
+#define DEFAULT_HTTPSERVER_PATH "./data"
+#define DEFAULT_WEBSERVER_PORT 8182
+
 #define DEBUG
 // Probably not soo many recordings at the same time :)
 #define MAX_RECORDERS 100
 // Reaps every REAP_INTERVAL seconds
 #define REAP_INTERVAL 30
+
+void showUsage();
 
 class StreamRecorder
 {

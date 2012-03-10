@@ -3,19 +3,75 @@
 #include "streamrecorder.h"
 #include "webfrontend.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-    StreamRecorder streamRecorder;
-    WebFrontend frontend(&streamRecorder);
+    int c;
+    bool ok = true;
+    char *optp = NULL;
+    char *optx = NULL;
+    char *opti = NULL;
+    char *optd = NULL;
 
-    HttpServer server(8182, "./data", &frontend);
-    server.start();
-    while(true)
+    string xmltvPath = DEFAULT_XMLTV_PATH;
+    string datadirPath = DEFAULT_DATADIR_PATH;
+    string httpPath = DEFAULT_HTTPSERVER_PATH;
+    uint16_t webserverPort = DEFAULT_WEBSERVER_PORT;
+
+    while((c = getopt(argc, argv, "p:h::x:i")) != -1)
     {
-        streamRecorder.process();
-        // once a second is enough for starting stopping recordings
-        sleep(1);
+        switch(c)
+        {
+            case 'd':
+                optd = optarg;
+                break;
+            case 'p':
+                optp = optarg;
+                break;
+            case 'i':
+                opti = optarg;
+                break;
+            case 'x':
+                optx = optarg;
+                break;
+            case 'h':
+                ok = false;
+                break;
+        }
     }
+    
+    if (optp != NULL)
+    {
+        int tmpport = atoi(optp);
+
+        if ((optp != NULL) && (tmpport <= USHRT_MAX) && (tmpport > 0))
+            webserverPort = (uint16_t)tmpport;
+    }
+
+    if (optd != NULL)
+        datadirPath = optd;
+
+    if (ok)
+    {
+        StreamRecorder streamRecorder;
+        WebFrontend frontend(&streamRecorder);
+
+        HttpServer server(webserverPort, httpPath, &frontend);
+        server.start();
+        while(true)
+        {
+            streamRecorder.process();
+            // once a second is enough for starting stopping recordings
+            sleep(1);
+        }
+    }
+    else
+        showUsage();
+}
+
+void showUsage()
+{
+    fprintf(stdout, "\nUsage: streamrecorder [-x xmltv path] [-d datadir] ");
+    fprintf(stdout, "[-p webserverport] [-i httpserver path]\n");
 }
 
 StreamRecorder::StreamRecorder()
