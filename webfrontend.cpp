@@ -79,9 +79,9 @@ void WebFrontend::getProgrammes(string &contentType, string &output,
     {
         ss << " { ";
         ss << "\"start\" : \"" << programmes[i].start << "\" , ";
+        ss << "\"end\" : \"" << programmes[i].end << "\" , ";
         ss << "\"title\" : \"" << programmes[i].title[0].second << "\"";
         ss << " } ";
-        // TODO: create a general vector->json array function
         if (i != programmes.size() - 1)
             ss << ",";
     }
@@ -93,18 +93,12 @@ void WebFrontend::getProgrammes(string &contentType, string &output,
 void WebFrontend::getProgramme(string &contentType, string &output,
     Request &request)
 {
-    string channelId = "";
-    string start = "";
     HttpServer::RequestParams::const_iterator it;
     contentType = "application/json";
+    string channelId = getParam(request, "channelid");
 
-    for (it = request.params.begin(); it != request.params.end(); it ++)
-    {
-        if (it->first == "channelid")
-            channelId = it->second;
-        if (it->first == "start")
-            start = it->second;
-    }
+    vector<string> tokens;
+    string start = getParam(request, "start");
 
     Programme programme;
     stringstream ss;
@@ -114,6 +108,7 @@ void WebFrontend::getProgramme(string &contentType, string &output,
     if ((programme.title.size() > 0) && (programme.description.size() > 0))
     {
         ss << "\"title\" : \"" << programme.title[0].second << "\", ";
+        ss << "\"start\" : \"" << programme.start << "\", ";
         ss << "\"description\" : \"" <<
             jsonEncode(programme.description[0].second) + "\"";
     }
@@ -125,19 +120,10 @@ void WebFrontend::getProgramme(string &contentType, string &output,
 void WebFrontend::record(string &contentType, string &output,
     Request &request)
 {
-    string channelId = "";
-    string start = "";
     HttpServer::RequestParams::const_iterator it;
     contentType = "application/json";
-
-    for (it = request.params.begin(); it != request.params.end(); it ++)
-    {
-        if (it->first == "channelid")
-            channelId = it->second;
-        if (it->first == "start")
-            start = it->second;
-    }
-
+    string channelId = getParam(request, "channelid");
+    string start = getParam(request, "start");
     if (!streamRecorder->record(channelId, start))
     {
         // TODO: return error
