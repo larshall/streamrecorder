@@ -64,14 +64,14 @@ class HttpServer : public Thread
         string createHeader(int status, const string &contentType,
             const Request &request, const string &reason = "");
 
-        void splitString(vector<string> &tokens,
-            const string &str, const string &sep);
 
         /// Url decodes a string (percent decoding)
         string percentDecode(const string &data);
     public:
         HttpServer(uint16_t port, const string &serverPath,
             WebFrontend *frontend);
+        static void splitString(vector<string> &tokens,
+            const string &str, const string &sep);
         ~HttpServer();
         void run();
 };
