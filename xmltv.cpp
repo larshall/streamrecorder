@@ -29,42 +29,67 @@ void XmlTv::readChannels(vector<Channel> &channels)
 void XmlTv::readProgrammes(const string &channelId,
     vector<Programme> &programmes, const string &date)
 {
+    // End for each programme is start of next programme for specific channel
+    // It is possible that end isn't defined (means xmltv file isn't updated)
+    // this is an error and it'll be written to stderr for now
+    int idx = 0;
     // Note: It doesn't care about timezones define in 'start' node
     string query  = "/tv/programme[@channel = '" + channelId +
         "' and contains(@start, " + date  + ")]";
-    
-    pugi::xpath_node_set tools = doc.select_nodes(query.c_str());
-    for (pugi::xpath_node_set::const_iterator it = tools.begin();
-        it != tools.end(); ++it)
+
+    pugi::xpath_node_set progs = doc.select_nodes(query.c_str());
+    for (pugi::xpath_node_set::const_iterator it = progs.begin();
+        it != progs.end(); ++it)
     {
         pugi::xpath_node node = *it;
         string start = node.node().attribute("start").value();
         string title = node.node().child("title").child_value();
         Programme p;
         p.start = start;
+
+        // updates the last entry with endtime
+        if (idx != 0)
+            programmes[idx-1].end = start;
+
         p.title.push_back(make_pair("da", title));
         programmes.push_back(p);
+        idx ++;
     }
 }
 
 void XmlTv::readProgramme(const string &channelId,
     const string &start, Programme &programme)
 {
-    string query  = "/tv/programme[@channel = '" + channelId +
-        "' and @start = '" + start + "']";
+    // NOTE: cannot query for 'start' attribute
+    // because the endtime is the next programme's (in time) starttime
+    string query  = "/tv/programme[@channel = '" + channelId + "']";
+    bool found = false;
 
-    std::cout << "\nQuery:" << query << std::endl;
-    pugi::xpath_node_set tools = doc.select_nodes(query.c_str());
-    for (pugi::xpath_node_set::const_iterator it = tools.begin();
-        it != tools.end(); ++it)
+    pugi::xpath_node_set progs = doc.select_nodes(query.c_str());
+    for (pugi::xpath_node_set::const_iterator it = progs.begin();
+        it != progs.end(); ++it)
     {
         pugi::xpath_node node = *it;
-        string start = node.node().attribute("start").value();
-        string title = node.node().child("title").child_value();
-        string description = node.node().child("desc").child_value();
 
-        programme.start = start;
-        programme.title.push_back(make_pair("da", title));
-        programme.description.push_back(make_pair("da", description));
+        string pstart = node.node().attribute("start").value();
+        if ((pstart.find(start) != string::npos) || (found))
+        {
+            if (found)
+            {
+                // updates the found programmes endtime
+                // with the next programme's starttime
+                programme.end = node.node().attribute("start").value();
+                break;
+            }
+
+            string start = node.node().attribute("start").value();
+            string title = node.node().child("title").child_value();
+            string description = node.node().child("desc").child_value();
+       
+            programme.start = start;
+            programme.title.push_back(make_pair("da", title));
+            programme.description.push_back(make_pair("da", description));
+            found = true;
+        }
     }
 }

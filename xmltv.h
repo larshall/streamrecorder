@@ -25,6 +25,7 @@ struct Programme
 {
     // TODO: convert to datetime
     string start;
+    string end;
     string channeldId;
     // lang, text
     vector<pair<string, string> > title;
@@ -51,7 +52,6 @@ class XmlTv
             vector<Programme> &programmes, const string &date);
         void readProgramme(const string &channelId,
             const string &start, Programme &programme);
-
 };
 
 #endif
