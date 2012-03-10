@@ -5,3 +5,4 @@
 * Show errors in webfrontend
 * Show current recordings and make it possible to stop/pause/delete recordings
 * Add support for mpeg2 streams
+* Add language support (xmltv)
