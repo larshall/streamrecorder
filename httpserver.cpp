@@ -131,7 +131,6 @@ void HttpServer::parseRequest(Request &request, const string &req)
         string decoded = percentDecode(tokens[1].c_str());
         int pos = parseReqParams(request.params, decoded, false);
 
-        std::cout << "\nREQUEST:" << req << std::endl;
         if (pos > -1)
             request.path = decoded.substr(0, (int)pos);
         else
