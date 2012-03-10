@@ -34,8 +34,9 @@ void StreamRecorder::process()
     {
         if (!(*it)->isRunning())
         {
-            fprintf(stderr, "startTime:%i, time:%i\n",
-                (int)(*it)->getStartTime(), (int)time(NULL));
+            fprintf(stderr, "startTime:%i, end:%i, time:%i\n",
+                (int)(*it)->getStartTime(), (int)(*it)->getEndTime(),
+                (int)time(NULL));
             if (((*it)->getStartTime() <= time(NULL)) &&
                 ((*it)->getEndTime() >= time(NULL)))
             {
@@ -83,7 +84,8 @@ void StreamRecorder::getProgramme(const string &channelId,
     xmltv.readProgramme(channelId, start, programme);
 }
 
-bool StreamRecorder::record(const string &channelId, const string &start)
+bool StreamRecorder::record(const string &channelId,
+    const string &start)
 {
     ScopedLock lock(&mutex);
     Programme p;
@@ -106,8 +108,13 @@ bool StreamRecorder::record(const string &channelId, const string &start)
         Recorder *r = new Recorder(cs.host, cs.port);
         r->setTitle(p.title[0].second);
         r->setDescription(p.description[0].second);
-        r->setStartTime(time(NULL) + 1);
-        r->setEndTime(time(NULL) + 120);
+
+        struct tm t;
+        strptime(start.c_str(), "%Y%m%d%H%M%S", &t);
+        r->setStartTime(mktime(&t));
+        strptime(p.end.c_str(), "%Y%m%d%H%M%S", &t);
+        r->setEndTime(mktime(&t));
+
         // TODO: user should be able to set the filename
         r->setFilename(channelId + start + ".x264");
 
