@@ -36,7 +36,7 @@ class H264
 {
     public:
         H264();
-        static void decodeNal(RtpPacket *packet);
+        static bool decodeNal(RtpPacket *packet);
         void save();
 };
 
