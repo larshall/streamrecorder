@@ -1,0 +1,5 @@
+* Check that stream is a RTP/h.264 stream
+* Add support for communicating directly with a DVB device
+* Show errors in webfrontend
+* Show current recordings and make it possible to stop/pause/delete recordings
+* Add support for mpeg2 streams
