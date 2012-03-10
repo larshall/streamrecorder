@@ -106,6 +106,7 @@ void HttpServer::run()
                 close(newsockfd);
             }
         }
+        usleep(0.5);
     }
 }
 
