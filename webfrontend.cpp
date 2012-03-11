@@ -62,18 +62,18 @@ void WebFrontend::getChannels(string &contentType, string &output,
     Request &request)
 {
     contentType = "application/json";
-    vector<ChannelStream> channelStreams;
+    vector<Channel> channels;
     stringstream ss;
-    streamRecorder->getChannelStreams(channelStreams);
+    streamRecorder->getChannels(channels);
     ss << "{\"Channels\" : [";
-    for (unsigned int i = 0; i < channelStreams.size(); i++)
+    for (unsigned int i = 0; i < channels.size(); i++)
     {
         ss << " { ";
-        ss << "\"id\" : \"" + channelStreams[i].channel + "\" , ";
-        ss << "\"displayname\" : \"" + channelStreams[i].channel + "\"";
+        ss << "\"id\" : \"" + channels[i].id + "\" , ";
+        ss << "\"displayname\" : \"" + channels[i].displayName+ "\"";
         ss << " } ";
 
-        if (i != channelStreams.size() - 1)
+        if (i != channels.size() - 1)
             ss << ",";
     }
     ss << "]}";
