@@ -17,6 +17,7 @@
  * along with StreamRecorder.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "streamrecorder.h"
 #include "httpserver.h"
 #include "webfrontend.h"
 /*
@@ -85,8 +86,9 @@ void HttpServer::run()
 
                 Request request;
                 parseRequest(request, buffer);
-                // TODO: log
-                //printf("request:%s\n", request.requestStr.c_str());
+#ifdef DEBUG
+                fprintf(stderr, "request:%s\n", request.requestStr.c_str());
+#endif
 
                 uint8_t bytes[HTTP_MAX_FILE_SIZE];
                 memset(bytes, 0, HTTP_MAX_FILE_SIZE);
@@ -219,6 +221,7 @@ string HttpServer::percentDecode(const string &data)
 {
     string ret = "";
     unsigned int i = 0;
+
     while(i < data.size())
     {
         if ((data[i] == '%') && (i < data.size() - 2))
