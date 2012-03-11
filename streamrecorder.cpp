@@ -109,9 +109,11 @@ void StreamRecorder::process()
     {
         if (!(*it)->isRunning())
         {
+#ifdef DEBUG
             fprintf(stderr, "startTime:%i, end:%i, time:%i\n",
                 (int)(*it)->getStartTime(), (int)(*it)->getEndTime(),
                 (int)time(NULL));
+#endif
             if (((*it)->getStartTime() <= time(NULL)) &&
                 ((*it)->getEndTime() >= time(NULL)))
             {
@@ -240,6 +242,8 @@ void StreamRecorder::reapRecorders()
 
     for (it = recorders.begin(); it != recorders.end(); it ++)
     {
+        if (((*it)->getEndTime() <= time(NULL)) && (!(*it)->isRunning()))
+
         if (!(*it)->isRunning())
         {
             tmp[num++] = it;
