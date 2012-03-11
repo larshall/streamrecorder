@@ -47,10 +47,10 @@
                     loadProgrammes();
                 });
 
-                $.getJSON("get-channels", function(json) {
+                $.getJSON("get-channelstreams", function(json) {
                     var items = "<option value=''></option>";
-                    for (var i = 0; i < json.Channels.length; i++)
-                        items += '<option value="' + json.Channels[i].id + '">' + json.Channels[i].displayname + '</option>';
+                    for (var i = 0; i < json.ChannelStreams.length; i++)
+                        items += '<option value="' + json.ChannelStreams[i].channel + '">' + json.ChannelStreams[i].channel + '</option>';
 
                     $("#channels").html(items);
                 });
