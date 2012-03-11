@@ -61,7 +61,7 @@ bool Settings::readSettings()
         stream.port = atoi(channelNode.child("port").child_value());
         channelStreams.push_back(stream);
     }
-    // TODO
+
     return true;
 }
 
@@ -80,7 +80,6 @@ bool Settings::save()
     }
     xml << "    </channelstreams>\n";
     xml << "</settings>";
-    fprintf(stderr, "Saving settings:%s\n", xml.str().c_str());
 
     pugi::xml_document tmp;
     pugi::xml_parse_result res = tmp.load(xml.str().c_str());
