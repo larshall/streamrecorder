@@ -187,9 +187,9 @@ bool StreamRecorder::record(const string &channelId,
         r->setDescription(p.description[0].second);
 
         struct tm t;
-        strptime(start.c_str(), "%Y%m%d%H%M%S", &t);
+        strptime(start.substr(0, 13).c_str(), "%Y%m%d%H%M%S", &t);
         r->setStartTime(mktime(&t));
-        strptime(p.end.c_str(), "%Y%m%d%H%M%S", &t);
+        strptime(p.end.substr(0, 13).c_str(), "%Y%m%d%H%M%S", &t);
         r->setEndTime(mktime(&t));
 
         // TODO: user should be able to set the filename
