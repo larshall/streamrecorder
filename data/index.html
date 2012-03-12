@@ -11,6 +11,8 @@
             // channel and start time is needed info for getting a specific programme
             var channelId = "";
             var start = "";
+            // Note: selected programme is just to show recording msgbox
+            var selectedProgramme = "";
             // selectedDate is default current date
             var selectedDate = new Date();
             
@@ -66,6 +68,7 @@
                     $.getJSON("get-programme?" + programmeId, function(json) {
                         json.description = escapeJson(json.description);
                         var items = "";
+                        selectedProgramme = json.title;
                         items += '<h2>' + json.title + '</h2>';
                         items += '<p>' + json.description + '</p>';
                         items += '<input type="submit" value="Record" />';
@@ -75,12 +78,12 @@
                 });
                 $("#record-programme").live("submit", function(event){
                     event.preventDefault();
-                    $.post("record", {"channelid": channelId, "start": start})
-                    .success(function(data)
+                    $.post("record", {"channelid": channelId, "start": start}, function(data)
                     {
+                        alert("Recording programme:" + selectedProgramme); 
+                        selectedProgramme = "";
                         start = "";
                         channelId = "";
-                        alert("Recording");
                     })
                 });
 
@@ -89,7 +92,7 @@
 
         <b>streamrecorder</b>
         <p> StreamRecorder records
-        h.264 rtp packets from a uni/multicast stream
+        h.264 rtp packets from a multicast DVB stream
         </p>
         <a href="settings.html">Settings</a>
         <div id="datepicker">test</div>
