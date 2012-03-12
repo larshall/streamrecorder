@@ -1,1 +1,22 @@
-StreamRecorder records a rtp h.264 multicast stream to disk
+StreamRecorder records rtp/h.264 multicast stream(s) from
+a DVB device to disk.
+The DVB stream is probably from dvblast, mumudvb or the likes.
+
+To start recording from a multicast stream(s), you'll need a xmltv file.
+See xmltv for further info: http://wiki.xmltv.org.
+
+Start streamrecorder:
+./streamrecorder -x <path to xmltv file> (default: './data/tv.xml dir')
+For setting other options such as the http port, data dir etc, see the help.
+
+Setting up a channel stream:
+Point your browser to the streamrecorder's setup/settings page:
+http://localhost:8182/settings.html (Default port is 8182).
+Go to the settings page and select which channel the stream comes from.
+Note: Channel names are extracted from the xmltv file.
+Set the multicast address and port.
+Save the channelstream.
+
+Recording a programme:
+Go to the recordings page http://localhost:8182/index.html, and
+select which date and programme to record, and press 'record'.
