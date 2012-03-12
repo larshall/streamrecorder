@@ -143,9 +143,11 @@ void WebFrontend::record(string &contentType, string &output,
     contentType = "application/json";
     string channelId = getParam(request, "channelid");
     string start = getParam(request, "start");
-    if (!streamRecorder->record(channelId, start))
+    if (streamRecorder->record(channelId, start))
+        output = "{\"success\":1}";
+    else
     {
-        // TODO: return error
+         // TODO: return error
     }
 }
 
