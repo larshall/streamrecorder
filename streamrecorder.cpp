@@ -69,6 +69,9 @@ int main(int argc, char *argv[])
     if (optd != NULL)
         datadirPath = optd;
 
+    if (optx != NULL)
+        xmltvFile = optx;
+
     if (ok)
     {
         StreamRecorder streamRecorder(xmltvFile);
