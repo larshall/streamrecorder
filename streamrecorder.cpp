@@ -98,7 +98,7 @@ void showUsage()
 
 StreamRecorder::StreamRecorder(const string &xmltvFile)
 {
-    xmltv.loadFile(xmltvFile, "da");
+    xmltv.loadFile(xmltvFile, "");
     settings.load("data/settings.xml");
     lastReap = time(NULL);
 }
