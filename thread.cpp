@@ -74,7 +74,7 @@ bool Thread::start()
     if (res == 0)
     {
         setRunning(true);
-        fprintf(stderr, "Thread started: %lu\n", (uint64_t) thread) ;
+        fprintf(stderr, "Thread started: %llu\n", (uint64_t) thread) ;
         pthread_detach(thread);
     }
     else
@@ -114,7 +114,7 @@ void Thread::stop()
 {
     if (isRunning())
     {
-        fprintf(stderr, "Thread stopped:%lu\n", (uint64_t) thread);
+        fprintf(stderr, "Thread stopped:%llu\n", (uint64_t) thread);
         setTerminate(true);
         setRunning(false);
     }
