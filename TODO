@@ -1,3 +1,4 @@
+* Persist planned recordings
 * Use autoconf/automake
 * Reload xmltv file if it has been changed
 * Reload settings file if it has been changed
