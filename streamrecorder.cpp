@@ -219,6 +219,20 @@ void StreamRecorder::saveChannelStream(const string &channel,
     settings.reload();
 }
 
+void StreamRecorder::getRecordings(vector<RecorderInfo> &recordings)
+{
+    ScopedLock lock(&mutex);
+    list<Recorder*>::iterator it;
+
+    for (it = recorders.begin(); it != recorders.end(); it ++)
+    {
+        RecorderInfo info;
+        info.startTime = (*it)->getStartTimeStr();
+        info.endTime = (*it)->getEndTimeStr();
+        recordings.push_back(info);
+    }
+}
+
 void StreamRecorder::deleteChannelStream(unsigned int channelId)
 {
     ScopedLock lock(&mutex);
