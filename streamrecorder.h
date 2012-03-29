@@ -40,6 +40,13 @@
 
 void showUsage();
 
+struct RecorderInfo
+{
+    string startTime;
+    string endTime;
+    string filename;
+};
+
 class StreamRecorder
 {
     private:
@@ -68,6 +75,7 @@ class StreamRecorder
         void saveChannelStream(const string &channel, const string &host,
             const string &port);
         void getChannelStreams(vector<ChannelStream> &streams);
+        void getRecordings(vector<RecorderInfo> &recordings);
         void deleteChannelStream(unsigned int channelId);
 };
 
