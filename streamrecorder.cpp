@@ -229,6 +229,9 @@ void StreamRecorder::getRecordings(vector<RecorderInfo> &recordings)
         RecorderInfo info;
         info.startTime = (*it)->getStartTimeStr();
         info.endTime = (*it)->getEndTimeStr();
+        info.title = (*it)->getTitle();
+        info.description = (*it)->getDescription();
+
         recordings.push_back(info);
     }
 }
