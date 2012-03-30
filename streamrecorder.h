@@ -44,6 +44,8 @@ struct RecorderInfo
 {
     string startTime;
     string endTime;
+    string title;
+    string description;
     string filename;
 };
 
