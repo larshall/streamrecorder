@@ -35,12 +35,21 @@
                         items += '<option value="' + json.Programmes[i].start + '">' + json.Programmes[i].title + '</option>';
                     $("#programmes").html(items);
                 });
-           
+            }
+
+            function getRecordings()
+            {
+                $.getJSON("get-recordings", function(json) {
+                    var items = "";
+                    for (var i = 0; i < json.Recordings.length; i++)
+                        items += json.Recordings[i].title + ' start:' + json.Recordings[i].start + ' end:' + json.Recordings[i].end + '<br />';
+                    $("#recordings").html(items);
+                });
             }
 
             $(document).ready(function(){
-
-                // The inline datepicker
+                self.setInterval("getRecordings()",1000)
+                // Inline datepicker
                 $("#datepicker").datePicker({inline:true, startDate: '19700101'})
                 .bind('dateSelected',
                 function(e, d, $td)
@@ -81,6 +90,7 @@
                     $.post("record", {"channelid": channelId, "start": start}, function(data)
                     {
                         alert("Recording programme:" + selectedProgramme); 
+
                         selectedProgramme = "";
                         start = "";
                         channelId = "";
@@ -103,8 +113,11 @@
             <select id="channels"></select>
             <h2>Programmes</h2>
             <select id="programmes"></select>
-            <div id="programme" />
+            <div id="programme"></div>
             <br />
         </form>
+        <br />
+        <h2>Recordings</h2>
+        <div id="recordings"></div>
     </body>
 </html>
