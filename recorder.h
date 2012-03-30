@@ -83,6 +83,14 @@ class Recorder : public Thread
             return startTime;
         }
 
+        string getStartTimeStr()
+        {
+            ScopedLock lock(&mutex);
+            char buf[20];
+            strftime(buf, 20, "%Y-%m-%d %H:%M:%S", localtime(&startTime));
+            return string(buf);
+        }
+
         void setEndTime(time_t endTime)
         {
             ScopedLock lock(&mutex);
@@ -95,10 +103,30 @@ class Recorder : public Thread
             return endTime;
         }
 
+        string getEndTimeStr()
+        {
+            ScopedLock lock(&mutex);
+            char buf[20];
+            strftime(buf, 20, "%Y-%m-%d %H:%M:%S", localtime(&endTime));
+            return string(buf);
+        }
+
         void setTitle(const string &title)
         {
             ScopedLock lock(&mutex);
             this->title = title;
+        }
+
+        string getTitle()
+        {
+            ScopedLock lock(&mutex);
+            return title;
+        }
+
+        string getDescription()
+        {
+            ScopedLock lock(&mutex);
+            return description;
         }
 
         void setDescription(const string &description)

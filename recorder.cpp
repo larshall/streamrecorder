@@ -36,7 +36,6 @@ void Recorder::run()
 {
     while(true)
     {
-
         if (doTerminate())
             break;
  
