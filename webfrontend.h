@@ -52,11 +52,13 @@ class WebFrontend
         /// Get all channel streams configured
         void getChannelStreams(string &contentType, string &output,
             Request &request);
-        /// Deletes the specified channelstream (id as param and is
+        /// Deletes the specified channelstream (id as param and it
         /// is just the index in the vector
         void deleteChannelStream(string &contentType, string &output,
             Request &request);
 
+        void getRecordings(string &contentType, string &output,
+            Request &request);
 
         string getParam(const Request &request, const string &name);
         string jsonEncode(const string &str);

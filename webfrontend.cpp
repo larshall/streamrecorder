@@ -46,6 +46,8 @@ int WebFrontend::handleRequest(string &contentType, uint8_t *bytes,
         getChannelStreams(contentType, output, request);
     else if (request.path == "/delete-channelstream")
         deleteChannelStream(contentType, output, request);
+    else if (request.path == "/get-recordings")
+        getRecordings(contentType, output, request);
     else
         found = false;
 
@@ -135,6 +137,37 @@ void WebFrontend::getProgramme(string &contentType, string &output,
 
     output = ss.str();
 }
+
+void WebFrontend::getRecordings(string &contentType, string &output,
+    Request &request)
+{
+    HttpServer::RequestParams::const_iterator it;
+    contentType = "application/json";
+
+    vector<RecorderInfo> recordings;
+    stringstream ss;
+
+    streamRecorder->getRecordings(recordings);
+
+    ss << "{\"Recordings\" : [";
+    for (unsigned int i = 0; i < recordings.size(); i++)
+    {
+        ss << " { ";
+        ss << "\"start\" : \"" << recordings[i].startTime << "\" , ";
+        ss << "\"end\" : \"" << recordings[i].endTime << "\" , ";
+        ss << "\"title\" : \"" << jsonEncode(recordings[i].title) << "\" , ";
+        ss << "\"description\" : \"" <<
+            jsonEncode(recordings[i].description) << "\"";
+
+        ss << " } ";
+        if (i != recordings.size() - 1)
+            ss << ",";
+    }
+    ss << "]}";
+
+    output = ss.str();
+}
+
 
 void WebFrontend::record(string &contentType, string &output,
     Request &request)
